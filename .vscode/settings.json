@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "*.html": "html",
-        "system_error": "c",
-        "types.h": "c",
-        "server_functions.h": "c",
-        "segnali.h": "c"
-    }
-}
