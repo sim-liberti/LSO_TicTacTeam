@@ -6,41 +6,37 @@
 #include <arpa/inet.h>
 
 #include "types.h"
+#include "server_functions.h"
 
 #define PORT 8080
 
-struct partite *lista_partite;
+struct partite lista_partite[100];
 pthread_mutex_t partite_mutex;
 
 void* handle_client(void* arg) {
     int client_socket = *(int*)arg;
     free(arg);
 
-    char buffer[1024] = {0};
-    int read_bytes = recv(client_socket, buffer, sizeof(buffer), 0);
+    char *lista_partite_json = visualizza_partite(lista_partite);
+    send(client_socket, lista_partite_json, strlen(lista_partite_json), 0);
 
-    if (read_bytes > 0) {
-        printf("Client %d ha inviato: %s\n", client_socket, buffer);
+    while(1){
+        char buffer[1024] = {0};
+        int read_bytes = recv(client_socket, buffer, sizeof(buffer), 0);
 
-        if (strncmp(buffer, "1", 1) == 0) {
-            // Crea partita
-        } else if (strncmp(buffer, "2", 1) == 0) {
-            // Registra mossa
-        } else if (strncmp(buffer, "3", 1) == 0) {
-            // Accetta sfidante
-        } else if (strncmp(buffer, "4", 1) == 0) {
-            // Pulisci
+        if (read_bytes > 0) {
+            printf("Client %d ha inviato: %s\n", client_socket, buffer);
+
+            if (strncmp(buffer, "1", 1) == 0) {
+                // Crea partita
+            } else if (strncmp(buffer, "2", 1) == 0) {
+                // Registra mossa
+            } else if (strncmp(buffer, "3", 1) == 0) {
+                // Accetta sfidante
+            } else if (strncmp(buffer, "4", 1) == 0) {
+                // Pulisci
+            }
         }
-
-        // if (strncmp(buffer, "inc", 3) == 0) {
-        //     pthread_mutex_lock(&partite_mutex);
-
-        //     pthread_mutex_unlock(&partite_mutex);
-
-        //     char response[100];
-        //     sprintf(response, "Contatore aggiornato: %d\n", 10);
-        //     send(client_socket, response, strlen(response), 0);
-        // }
     }
 
     close(client_socket);
@@ -51,6 +47,10 @@ int main() {
     int server_fd, client_socket;
     struct sockaddr_in address;
     socklen_t addrlen = sizeof(address);
+
+    lista_partite[0].id_partita = 10;
+    lista_partite[0].id_owner = 85;
+    lista_partite[0].stato_partita = IN_CORSO;
 
     pthread_mutex_init(&partite_mutex, NULL);
 

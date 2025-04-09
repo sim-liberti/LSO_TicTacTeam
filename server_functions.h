@@ -1,6 +1,9 @@
 #ifndef TRIS_FUNCS_H
 #define TRIS_FUNCS_H
 
+#include "types.h"
+
+char* visualizza_partite(partite lista_partite[100]);
 void crea_nuova_partita(char *);
 void inserisci_mossa(char *);
 void gestisci_richiesta_guest(char *);

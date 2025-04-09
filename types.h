@@ -16,9 +16,6 @@ typedef struct partite {
     int id_guest;
     enum stato_partita_enum stato_partita;
     int partita[3][3];
-
-    struct partite *next;
-    struct partite *prev;
 } partite;
 
 typedef struct partite_giocatore {
