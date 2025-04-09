@@ -3,6 +3,8 @@
 
 #include "segnali.h"
 
+#define MAX_ARRAY_LEN 100
+
 enum stato_partita_enum {
     CREAZIONE,
     IN_ATTESA,
@@ -10,12 +12,18 @@ enum stato_partita_enum {
     TERMINATA
 };
 
+typedef enum simboli_partita_enum {
+    X = 1,
+    O = 2
+} simboli_partita_enum;
+
 typedef struct partite {
     int id_partita;
     int id_owner;
     int id_guest;
     enum stato_partita_enum stato_partita;
     int partita[3][3];
+    int turno;
 } partite;
 
 typedef struct partite_giocatore {

@@ -10,7 +10,7 @@
 
 #define PORT 8080
 
-struct partite lista_partite[100];
+struct partite lista_partite[MAX_ARRAY_LEN];
 pthread_mutex_t partite_mutex;
 
 void* handle_client(void* arg) {
@@ -19,6 +19,9 @@ void* handle_client(void* arg) {
 
     char *lista_partite_json = visualizza_partite(lista_partite);
     send(client_socket, lista_partite_json, strlen(lista_partite_json), 0);
+
+    buffer_generico_sig buffer;
+    unpack_json_to_buffer("", &buffer);
 
     while(1){
         char buffer[1024] = {0};
@@ -84,3 +87,4 @@ int main() {
     pthread_mutex_destroy(&partite_mutex);
     return 0;
 }
+
