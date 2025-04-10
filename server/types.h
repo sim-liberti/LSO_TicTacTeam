@@ -40,6 +40,8 @@ typedef struct partita {
 
     pthread_mutex_t lock;
     pthread_cond_t cond;
+    pthread_cond_t cond_turno_owner;
+    pthread_cond_t cond_turno_guest;
 } partita;
 
 typedef struct giocatore {
@@ -58,5 +60,10 @@ typedef struct gestione_pareggio {
     int risposta_owner;
     int risposta_guest;
 } gestione_pareggio;
+
+typedef struct gestione_turno {
+    int turno_owner;
+    int turno_guest;
+} gestione_turno;
 
 #endif // TRIS_STRUCTS_H

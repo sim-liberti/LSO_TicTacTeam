@@ -36,35 +36,62 @@ char* crea_nuova_partita(buffer_nuova_partita *nuova_partita, partita *lista_par
     // Aggiungi alla lista delle partite del giocatore la partita creata
 }
 
-char* inserisci_mossa(buffer_nuova_mossa*nuova_mossa, partita *lista_partite, fine_partita_enum *stato_fine){
+char* inserisci_mossa(buffer_nuova_mossa *nuova_mossa, partita *lista_partite, fine_partita_enum *stato_fine){
     int id_partita = nuova_mossa->id_partita;
     int coord_x = nuova_mossa->coord_x;
     int coord_y = nuova_mossa->coord_y;
+    int id_giocatore = nuova_mossa->id_giocatore;
     simboli_partita_enum simbolo = nuova_mossa->simbolo;
 
-    partita partita_corrente = lista_partite[id_partita];
+    partita *partita_corrente = &lista_partite[id_partita];
 
-    partita_corrente.griglia[coord_x][coord_y] = simbolo;
-    partita_corrente.turno++;
+    pthread_mutex_lock(&partita_corrente->lock);
 
-    int vittoria = controlla_vittoria(partita_corrente.griglia, coord_x, coord_y);
-
-    if (vittoria){
-        int i, j;
-        partita_corrente.id_owner = nuova_mossa->id_giocatore;
-        partita_corrente.id_guest = 0;
-        partita_corrente.stato_partita = IN_ATTESA;
-        for (i = 0; i < 3; i++)
-            for (j = 0; j < 3; j++)
-                partita_corrente.griglia[i][j] = 0;
-
-        *stato_fine = VITTORIA;
-        return "vittoria";
+    while ((id_giocatore == partita_corrente->id_owner && partita_corrente->turno != 0) ||
+           (id_giocatore == partita_corrente->id_guest && partita_corrente->turno != 1)) {
+        if (id_giocatore == partita_corrente->id_owner) {
+            pthread_cond_wait(&partita_corrente->cond_turno_owner, &partita_corrente->lock);
+        } else {
+            pthread_cond_wait(&partita_corrente->cond_turno_guest, &partita_corrente->lock);
+        }
     }
-    if (!vittoria && (partita_corrente.turno == 9))
-        partita_corrente.stato_partita = TERMINATA;
-        *stato_fine = PAREGGIO;
-        return "pareggio";
+
+    partita_corrente->griglia[coord_x][coord_y] = simbolo;
+    partita_corrente->turno = (partita_corrente->turno + 1) % 2;
+
+    int vittoria = controlla_vittoria(partita_corrente->griglia, coord_x, coord_y);
+
+    if (id_giocatore == partita_corrente->id_owner)
+        pthread_cond_signal(&partita_corrente->cond_turno_guest);
+    else if (id_giocatore == partita_corrente->id_guest)
+        pthread_cond_signal(&partita_corrente->cond_turno_owner);
+
+    char *response;
+
+    if (vittoria)
+        response = "";
+        
+    // if (vittoria){
+    //     int i, j;
+    //     partita_corrente->id_owner = nuova_mossa->id_giocatore;
+    //     partita_corrente->id_guest = 0;
+    //     partita_corrente->stato_partita = IN_ATTESA;
+    //     for (i = 0; i < 3; i++)
+    //         for (j = 0; j < 3; j++)
+    //             partita_corrente->griglia[i][j] = 0;
+
+    //     *stato_fine = VITTORIA;
+    //     return "vittoria";
+    // }
+    // if (!vittoria && (partita_corrente->turno == 9))
+    //     partita_corrente->stato_partita = TERMINATA;
+    //     *stato_fine = PAREGGIO;
+    //     return "pareggio";
+    
+    response = "Matrice aggiornata";
+    
+    pthread_mutex_unlock(&partita_corrente->lock);
+    return response;
 }
 
 char* gestisci_richiesta_guest(char *buffer){
@@ -100,7 +127,7 @@ char* gestisci_pareggio(buffer_gestisci_pareggio *buffer, partita *lista_partite
         response = ""; // Guest è il nuovo owner e si pulisce la griglia
     else
         response = ""; // Owner non cambia e si pulisce la griglia
-        
+
     pthread_mutex_unlock(&partita_corrente->lock);
     return response; 
 }
