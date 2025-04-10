@@ -2,7 +2,7 @@
 
 #include "cjson/cJSON.h"
 
-char* visualizza_partite(partite lista_partite[100]){
+char* visualizza_partite(partita lista_partite[100]){
     cJSON *json = cJSON_CreateObject();
     cJSON *array = cJSON_CreateArray();
 
@@ -23,7 +23,7 @@ char* visualizza_partite(partite lista_partite[100]){
     return json_string;
 }
 
-char* crea_nuova_partita(nuova_partita_sig *nuova_partita, partite *lista_partite){
+char* crea_nuova_partita(buffer_nuova_partita *nuova_partita, partita *lista_partite){
     int i = 0;
 
     for (i = 0; i < MAX_ARRAY_LEN; i++) {
@@ -33,20 +33,21 @@ char* crea_nuova_partita(nuova_partita_sig *nuova_partita, partite *lista_partit
             return pack_buffer_to_json(lista_partite[i]);
         }
     }    
+    // Aggiungi alla lista delle partite del giocatore la partita creata
 }
 
-char* inserisci_mossa(nuova_mossa_sig *nuova_mossa, partite *lista_partite){
+char* inserisci_mossa(buffer_nuova_mossa*nuova_mossa, partita *lista_partite, fine_partita_enum *stato_fine){
     int id_partita = nuova_mossa->id_partita;
     int coord_x = nuova_mossa->coord_x;
     int coord_y = nuova_mossa->coord_y;
     simboli_partita_enum simbolo = nuova_mossa->simbolo;
 
-    partite partita_corrente = lista_partite[id_partita];
+    partita partita_corrente = lista_partite[id_partita];
 
-    partita_corrente.partita[coord_x][coord_y] = simbolo;
+    partita_corrente.griglia[coord_x][coord_y] = simbolo;
     partita_corrente.turno++;
 
-    int vittoria = controlla_vittoria(partita_corrente.partita, coord_x, coord_y);
+    int vittoria = controlla_vittoria(partita_corrente.griglia, coord_x, coord_y);
 
     if (vittoria){
         int i, j;
@@ -55,15 +56,18 @@ char* inserisci_mossa(nuova_mossa_sig *nuova_mossa, partite *lista_partite){
         partita_corrente.stato_partita = IN_ATTESA;
         for (i = 0; i < 3; i++)
             for (j = 0; j < 3; j++)
-                partita_corrente.partita[i][j] = 0;   
+                partita_corrente.griglia[i][j] = 0;
+
+        *stato_fine = VITTORIA;
         return "vittoria";
     }
     if (!vittoria && (partita_corrente.turno == 9))
         partita_corrente.stato_partita = TERMINATA;
+        *stato_fine = PAREGGIO;
         return "pareggio";
 }
 
-void gestisci_richiesta_guest(char *buffer){
+char* gestisci_richiesta_guest(char *buffer){
     /*Il buffer contiene l'id della partita e l'id del guest
     invio un messaggio all'owner della partita del tipo "Il giocatore id_guest vuole unirsi alla partita id_partita, accetti?"
     se accetta aggiorno il guest della partita, lo status con "In_Corso" e la starto (aspetto le mosse)
@@ -71,15 +75,53 @@ void gestisci_richiesta_guest(char *buffer){
     */
 }
 
-void gestisci_pareggio(char *buffer){
-    /*Se entrambi accettano, pulisco la griglia della partita e setto lo stato della partita in In_Corso
-    chi rifiuta viene buttato fuori
-    se uno solo accetta, diventa l'owner, pulisco la griglia della partita e setto lo stato in "InAttesa"
-    se entrambi rifiutano libero la partita con la funzione "Pulisci_partita"
-    */
+char* gestisci_pareggio(buffer_gestisci_pareggio *buffer, partita *lista_partite){
+    partita *partita_corrente = &lista_partite[buffer->id_partita];
+    pthread_mutex_lock(&partita_corrente->lock);
+
+    if (buffer->id_giocatore == partita_corrente->id_owner)
+        partita_corrente->pareggio.risposta_owner = buffer->id_giocatore;
+    else if (buffer->id_giocatore == partita_corrente->id_guest)
+        partita_corrente->pareggio.risposta_guest = buffer->id_giocatore;
+
+    while (partita_corrente->pareggio.risposta_owner == 0 || partita_corrente->pareggio.risposta_guest == 0)
+        pthread_cond_wait(&partita_corrente->pareggio, &partita_corrente->lock);
+
+    int risposta_owner = partita_corrente->pareggio.risposta_owner;
+    int risposta_guest = partita_corrente->pareggio.risposta_guest;
+
+    char *response;
+
+    if (risposta_owner == risposta_guest == 1)
+        response = "";  // Si pulisce la griglia
+    else if (risposta_owner == risposta_guest == 2)
+        response = cancella_partita(buffer->id_partita, lista_partite);
+    else if (risposta_owner == 0)
+        response = ""; // Guest è il nuovo owner e si pulisce la griglia
+    else
+        response = ""; // Owner non cambia e si pulisce la griglia
+        
+    pthread_mutex_unlock(&partita_corrente->lock);
+    return response; 
 }
 
-void unpack_json_to_buffer(char *json_input, buffer_generico_sig *buffer){
+char* cancella_partita(int id_partita, partita *lista_partite) {
+    partita *partita_corrente = &lista_partite[id_partita];
+    // Cancella dalla lista delle partite del giocatore la partita corrente da rimuovere
+    partita_corrente->id_partita = 0;
+    partita_corrente->id_owner = 0;
+    partita_corrente->id_guest = 0;
+    partita_corrente->turno = 0;
+    partita_corrente->stato_partita = CREAZIONE;
+    int i,j;
+    for(i = 0; i < 3; i++)
+        for (j = 0; j < 3; j++)
+            partita_corrente->griglia[i][j] = 0;
+    
+    return "";
+}
+
+void json_to_buffer(char *json_input, buffer_generico *buffer){
     cJSON *json_obj = cJSON_Parse(json_input);
     if (json_obj == NULL) {
         printf("Errore JSON");
@@ -133,7 +175,7 @@ void unpack_json_to_buffer(char *json_input, buffer_generico_sig *buffer){
  
 }
 
-char *pack_buffer_to_json(partite lista_partite) {
+char *pack_buffer_to_json(partita lista_partite) {
     return "";
 }
 
