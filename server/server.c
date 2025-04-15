@@ -3,7 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <arpa/inet.h>
+#include <Winsock2.h> // Implementazione windows
+// #include <arpa/inet.h> // Implementazione linux
 
 #include "server_functions.h"
 
