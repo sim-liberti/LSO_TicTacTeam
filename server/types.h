@@ -2,11 +2,10 @@
 #define TRIS_STRUCTS_H
 
 #include <pthread.h>
-#include "segnali.h"
 
 #define MAX_ARRAY_LEN 100
 
-typedef struct {
+typedef struct SharedMemory{
     struct partita lista_partite[MAX_ARRAY_LEN];
     pthread_mutex_t lock;
 } SharedMemory;

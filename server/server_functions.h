@@ -1,7 +1,6 @@
 #ifndef TRIS_FUNCS_H
 #define TRIS_FUNCS_H
 
-#include "types.h"
 #include "segnali.h"
 
 char* visualizza_partite(partita lista_partite[100]);

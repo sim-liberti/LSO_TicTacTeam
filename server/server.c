@@ -3,9 +3,18 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <Winsock2.h> // Implementazione windows
-// #include <arpa/inet.h> // Implementazione linux
 
+#ifdef _WIN32
+// Implementazione Socket Windows
+#include <Winsock2.h> 
+#include <ws2tcpip.h>
+#else
+// Implementazione Socket Linux
+#include <arpa/inet.h> 
+#endif
+
+#include "types.h"
+#include "segnali.h"
 #include "server_functions.h"
 
 #define PORT 8080
