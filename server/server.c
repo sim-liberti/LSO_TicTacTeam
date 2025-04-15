@@ -26,6 +26,9 @@ void* handle_client(void* arg) {
     char buffer_str[2048];
 
     // Invia lista partite iniziale
+    char id_socket[20];
+    sprintf(id_socket, "%d", client_socket);
+    send(client_socket, id_socket, strlen(id_socket), 0);
     char *initial_list = visualizza_partite(mem.lista_partite);
     send(client_socket, initial_list, strlen(initial_list), 0);
 
