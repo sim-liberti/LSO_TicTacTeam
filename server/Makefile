@@ -1,4 +1,3 @@
-# Nome dell'eseguibile finale
 TARGET = main.exe
 
 CC = gcc
