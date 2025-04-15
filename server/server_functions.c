@@ -1,6 +1,6 @@
-#include "server_functions.h"
-
 #include "utils/cJSON.h"
+
+#include "server_functions.h"
 
 char* visualizza_partite(partita lista_partite[100]){
     cJSON *json = cJSON_CreateObject();
@@ -28,9 +28,10 @@ char* crea_nuova_partita(buffer_nuova_partita *nuova_partita, partita *lista_par
 
     for (i = 0; i < MAX_ARRAY_LEN; i++) {
         if (lista_partite[i].id_owner == 0){
+            lista_partite[i].id_partita = i;
             lista_partite[i].id_owner = nuova_partita->id_owner;
             lista_partite[i].stato_partita = CREAZIONE;
-            return buffer_to_json(lista_partite[i]);
+            return visualizza_partite(lista_partite);
         }
     }    
     // Aggiungi alla lista delle partite del giocatore la partita creata
@@ -145,7 +146,7 @@ char* cancella_partita(int id_partita, partita *lista_partite) {
         for (j = 0; j < 3; j++)
             partita_corrente->griglia[i][j] = 0;
     
-    return "";
+    return visualizza_partite(lista_partite);
 }
 
 void json_to_buffer(char *json_input, buffer_generico *buffer){
@@ -202,7 +203,7 @@ void json_to_buffer(char *json_input, buffer_generico *buffer){
  
 }
 
-char *buffer_to_json(partita lista_partite) {
+char *buffer_to_json(segnali_buffer_enum segnale, partita lista_partite) {
     return "";
 }
 

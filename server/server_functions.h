@@ -12,7 +12,7 @@ char* gestisci_pareggio(buffer_gestisci_pareggio *, partita *);
 char* cancella_partita(int, partita *);
 
 void json_to_buffer(char *, buffer_generico *);
-char* buffer_to_json(partita);
+char* buffer_to_json(segnali_buffer_enum, partita);
 int controlla_vittoria(int (*)[3], int, int);
 
 #endif

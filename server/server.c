@@ -22,42 +22,49 @@ SharedMemory mem;
 void* handle_client(void* arg) {
     int client_socket = *(int*)arg;
     free(arg);
-    
-    char *response;
-    // 
-    // json_to_buffer("", &buffer);
 
-    while(1){
-        char *buffer_str;
-        int read_bytes = recv(client_socket, buffer_str, sizeof(buffer_str), 0);
+    char buffer_str[2048];
+
+    // Invia lista partite iniziale
+    char *initial_list = visualizza_partite(mem.lista_partite);
+    send(client_socket, initial_list, strlen(initial_list), 0);
+
+    int read_bytes;
+    while ((read_bytes = recv(client_socket, buffer_str, sizeof(buffer_str) - 1, 0)) > 0) {
+        buffer_str[read_bytes] = '\0';
+
         buffer_generico buffer;
         json_to_buffer(buffer_str, &buffer);
+
+        char* dynamic_response = NULL;
 
         switch(buffer.segnale){
             case NUOVA_PARTITA:
                 pthread_mutex_lock(&mem.lock);
-                response = crea_nuova_partita(&buffer.nuova_partita, mem.lista_partite);
-                // Restituiamo al client la lista delle partite
-                // e la nuova partita creata
+                dynamic_response = crea_nuova_partita(&buffer.nuova_partita, mem.lista_partite);
                 pthread_mutex_unlock(&mem.lock);
-            break; 
-            case NUOVA_MOSSA:
+                break; 
+            case NUOVA_MOSSA: {
                 fine_partita_enum stato_fine;
-                response = inserisci_mossa(&buffer.nuova_mossa, mem.lista_partite, &stato_fine);
-            break; 
-            case GESTISCI_GUEST:
-
-            break; 
+                dynamic_response = inserisci_mossa(&buffer.nuova_mossa, mem.lista_partite, &stato_fine);
+                break;
+            }
             case GESTISCI_PAREGGIO:
-                response = gestisci_pareggio(&buffer.gestisci_pareggio, mem.lista_partite);
-            break;
+                dynamic_response = gestisci_pareggio(&buffer.gestisci_pareggio, mem.lista_partite);
+                break;
             case CANCELLA_PARTITA:
-                response = cancella_partita(buffer.cancella_partita.id_partita, mem.lista_partite);
-            break;
+                dynamic_response = cancella_partita(buffer.cancella_partita.id_partita, mem.lista_partite);
+                break;
+        }
+
+        if (dynamic_response != NULL) {
+            send(client_socket, dynamic_response, strlen(dynamic_response), 0);
+            free(dynamic_response); // solo se è stato allocato dinamicamente
+        } else {
+            send(client_socket, "OK", 2, 0);
         }
     }
 
-    send(client_socket, response, strlen(response), 0);
     close(client_socket);
     return NULL;
 }
@@ -68,11 +75,22 @@ int main() {
     socklen_t addrlen = sizeof(address);
 
     pthread_mutex_init(&mem.lock, NULL);
+    
+    #ifdef _WIN32
+    // Inizializzazione Winsock
+    WSADATA wsaData;
+    int wsa_result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (wsa_result != 0) {
+        printf("Errore in WSAStartup: %d\n", wsa_result);
+        return 1;
+    }
+    #endif
 
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);
+
 
     bind(server_fd, (struct sockaddr*)&address, sizeof(address));
     listen(server_fd, 5);
@@ -81,13 +99,20 @@ int main() {
 
     while (1) {
         client_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
-        int* pclient = malloc(sizeof(int));
-        *pclient = client_socket;
 
-        pthread_t tid;
-        pthread_create(&tid, NULL, handle_client, pclient);
-        pthread_detach(tid);
+        if (client_socket >= 0) {
+            int* pclient = malloc(sizeof(int));
+            *pclient = client_socket;
+    
+            pthread_t tid;
+            pthread_create(&tid, NULL, handle_client, pclient);
+            pthread_detach(tid);
+        }
     }
+
+    #ifdef _WIN32
+    WSACleanup();  // <-- Molto importante!
+    #endif
 
     close(server_fd);
     pthread_mutex_destroy(&mem.lock);
