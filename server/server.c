@@ -13,8 +13,6 @@
 #include <arpa/inet.h> 
 #endif
 
-#include "types.h"
-#include "segnali.h"
 #include "server_functions.h"
 
 #define PORT 8080
@@ -24,14 +22,16 @@ SharedMemory mem;
 void* handle_client(void* arg) {
     int client_socket = *(int*)arg;
     free(arg);
-
+    
     char *response;
-    // buffer_generico buffer;
+    // 
     // json_to_buffer("", &buffer);
 
     while(1){
+        char *buffer_str;
+        int read_bytes = recv(client_socket, buffer_str, sizeof(buffer_str), 0);
         buffer_generico buffer;
-        int read_bytes = recv(client_socket, &buffer, sizeof(buffer), 0);
+        json_to_buffer(buffer_str, &buffer);
 
         switch(buffer.segnale){
             case NUOVA_PARTITA:
@@ -52,7 +52,7 @@ void* handle_client(void* arg) {
                 response = gestisci_pareggio(&buffer.gestisci_pareggio, mem.lista_partite);
             break;
             case CANCELLA_PARTITA:
-                response = cancella_partita(&buffer.cancella_partita.id_partita, mem.lista_partite);
+                response = cancella_partita(buffer.cancella_partita.id_partita, mem.lista_partite);
             break;
         }
     }

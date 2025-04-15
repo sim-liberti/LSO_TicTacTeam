@@ -1,8 +1,6 @@
 #ifndef TRIS_SIGNALS_H
 #define TRIS_SIGNALS_H
 
-#include "types.h"
-
 typedef enum segnali_buffer_enum {
     NUOVA_PARTITA = 1,
     NUOVA_MOSSA,
@@ -10,17 +8,6 @@ typedef enum segnali_buffer_enum {
     GESTISCI_PAREGGIO,
     CANCELLA_PARTITA
 } segnali_buffer_enum;
-
-typedef struct buffer_generico{
-    segnali_buffer_enum segnale;
-    union {
-        buffer_nuova_partita nuova_partita;
-        buffer_nuova_mossa nuova_mossa;
-        buffer_gestisci_guest gestisci_guest;
-        buffer_gestisci_pareggio gestisci_pareggio;
-        buffer_cancella_partita cancella_partita;
-    };
-} buffer_generico;
 
 typedef struct buffer_nuova_partita {
     int id_owner;
@@ -50,5 +37,16 @@ typedef struct buffer_gestisci_pareggio {
 typedef struct buffer_cancella_partita {
     int id_partita;
 } buffer_cancella_partita;
+
+typedef struct buffer_generico{
+    segnali_buffer_enum segnale;
+    union {
+        buffer_nuova_partita nuova_partita;
+        buffer_nuova_mossa nuova_mossa;
+        buffer_gestisci_guest gestisci_guest;
+        buffer_gestisci_pareggio gestisci_pareggio;
+        buffer_cancella_partita cancella_partita;
+    };
+} buffer_generico;
 
 #endif

@@ -1,6 +1,6 @@
 #include "server_functions.h"
 
-#include "cjson/cJSON.h"
+#include "utils/cJSON.h"
 
 char* visualizza_partite(partita lista_partite[100]){
     cJSON *json = cJSON_CreateObject();
@@ -30,7 +30,7 @@ char* crea_nuova_partita(buffer_nuova_partita *nuova_partita, partita *lista_par
         if (lista_partite[i].id_owner == 0){
             lista_partite[i].id_owner = nuova_partita->id_owner;
             lista_partite[i].stato_partita = CREAZIONE;
-            return pack_buffer_to_json(lista_partite[i]);
+            return buffer_to_json(lista_partite[i]);
         }
     }    
     // Aggiungi alla lista delle partite del giocatore la partita creata
@@ -112,7 +112,7 @@ char* gestisci_pareggio(buffer_gestisci_pareggio *buffer, partita *lista_partite
         partita_corrente->pareggio.risposta_guest = buffer->id_giocatore;
 
     while (partita_corrente->pareggio.risposta_owner == 0 || partita_corrente->pareggio.risposta_guest == 0)
-        pthread_cond_wait(&partita_corrente->pareggio, &partita_corrente->lock);
+        pthread_cond_wait(&partita_corrente->cond, &partita_corrente->lock);
 
     int risposta_owner = partita_corrente->pareggio.risposta_owner;
     int risposta_guest = partita_corrente->pareggio.risposta_guest;
@@ -151,8 +151,8 @@ char* cancella_partita(int id_partita, partita *lista_partite) {
 void json_to_buffer(char *json_input, buffer_generico *buffer){
     cJSON *json_obj = cJSON_Parse(json_input);
     if (json_obj == NULL) {
-        printf("Errore JSON");
-        return -1;
+        //printf("Errore JSON");
+        return;
     }
     segnali_buffer_enum segnale = cJSON_GetNumberValue(
         cJSON_GetObjectItem(json_obj, "segnale")
@@ -163,7 +163,7 @@ void json_to_buffer(char *json_input, buffer_generico *buffer){
             cJSON *nuova_partita_json = cJSON_GetObjectItem(json_obj, "nuova_partita");
             
             if (nuova_partita_json == NULL) 
-                return -1;
+                return;
             
             buffer->nuova_partita.id_owner = cJSON_GetNumberValue(
                 cJSON_GetObjectItem(nuova_partita_json, "id_owner")
@@ -175,7 +175,7 @@ void json_to_buffer(char *json_input, buffer_generico *buffer){
             cJSON *nuova_mossa_json = cJSON_GetObjectItem(json_obj, "nuova_mossa");
 
             if (nuova_mossa_json == NULL) 
-                return -1;
+                return;
 
             buffer->nuova_mossa.id_partita = cJSON_GetNumberValue(
                 cJSON_GetObjectItem(nuova_mossa_json, "id_partita")
@@ -202,7 +202,7 @@ void json_to_buffer(char *json_input, buffer_generico *buffer){
  
 }
 
-char *pack_buffer_to_json(partita lista_partite) {
+char *buffer_to_json(partita lista_partite) {
     return "";
 }
 
