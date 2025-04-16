@@ -1,5 +1,6 @@
 .git/
 .vscode/
+.venv/
 
 *.exe
 *.out
