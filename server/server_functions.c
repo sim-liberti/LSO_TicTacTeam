@@ -159,6 +159,9 @@ void json_to_buffer(char *json_input, buffer_generico *buffer){
         cJSON_GetObjectItem(json_obj, "segnale")
     );
     switch (segnale){
+        case LISTA_PARTITE:
+            buffer->segnale = LISTA_PARTITE;
+            break;
         case NUOVA_PARTITA:
             buffer->segnale = NUOVA_PARTITA;
             cJSON *nuova_partita_json = cJSON_GetObjectItem(json_obj, "nuova_partita");

@@ -2,11 +2,12 @@
 #define TRIS_SIGNALS_H
 
 typedef enum segnali_buffer_enum {
+    LISTA_PARTITE = 0,
     NUOVA_PARTITA = 1,
-    NUOVA_MOSSA,
-    GESTISCI_GUEST,
-    GESTISCI_PAREGGIO,
-    CANCELLA_PARTITA
+    NUOVA_MOSSA = 2,
+    GESTISCI_GUEST = 3,
+    GESTISCI_PAREGGIO = 4,
+    CANCELLA_PARTITA = 5
 } segnali_buffer_enum;
 
 typedef struct buffer_nuova_partita {

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <signal.h>
+#include <stdbool.h>
 
 #ifdef _WIN32
 // Implementazione Socket Windows
@@ -18,6 +20,12 @@
 #define PORT 8080
 
 SharedMemory mem;
+volatile sig_atomic_t server_running = 1;
+
+void handle_sigint(int sig) {
+    printf("\nChiudo il server...\n");
+    server_running = 0;
+}
 
 void* handle_client(void* arg) {
     int client_socket = *(int*)arg;
@@ -25,33 +33,42 @@ void* handle_client(void* arg) {
 
     char buffer_str[2048];
 
+    printf("Client %d connesso.\n", client_socket);
+
     // Invia lista partite iniziale
     char id_socket[20];
     sprintf(id_socket, "%d", client_socket);
     send(client_socket, id_socket, strlen(id_socket), 0);
+    sleep(0.1);
     char *initial_list = visualizza_partite(mem.lista_partite);
     send(client_socket, initial_list, strlen(initial_list), 0);
 
     int read_bytes;
     while ((read_bytes = recv(client_socket, buffer_str, sizeof(buffer_str) - 1, 0)) > 0) {
+        // printf("Ricevuto segnale da client: %d\n", client_socket);
         buffer_str[read_bytes] = '\0';
+        // printf("Ecco il buffer: %s\n", buffer_str);
 
         buffer_generico buffer;
         json_to_buffer(buffer_str, &buffer);
-
+        
         char* dynamic_response = NULL;
 
         switch(buffer.segnale){
+            case LISTA_PARTITE:
+                // printf("Ricevuto segnale LISTA_PARTITE\n");
+                dynamic_response = visualizza_partite(mem.lista_partite);
+                break;
             case NUOVA_PARTITA:
+                // printf("Ricevuto segnale NUOVA_PARTITA\n");
                 pthread_mutex_lock(&mem.lock);
                 dynamic_response = crea_nuova_partita(&buffer.nuova_partita, mem.lista_partite);
                 pthread_mutex_unlock(&mem.lock);
                 break; 
-            case NUOVA_MOSSA: {
+            case NUOVA_MOSSA:
                 fine_partita_enum stato_fine;
                 dynamic_response = inserisci_mossa(&buffer.nuova_mossa, mem.lista_partite, &stato_fine);
                 break;
-            }
             case GESTISCI_PAREGGIO:
                 dynamic_response = gestisci_pareggio(&buffer.gestisci_pareggio, mem.lista_partite);
                 break;
@@ -76,7 +93,9 @@ int main() {
     int server_fd, client_socket;
     struct sockaddr_in address;
     socklen_t addrlen = sizeof(address);
-
+    
+    setvbuf(stdout, NULL, _IONBF, 0);
+    signal(SIGINT, handle_sigint);
     pthread_mutex_init(&mem.lock, NULL);
     
     #ifdef _WIN32
@@ -93,20 +112,23 @@ int main() {
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);
-
-
-    bind(server_fd, (struct sockaddr*)&address, sizeof(address));
+    
+    int socket = bind(server_fd, (struct sockaddr*)&address, sizeof(address));
+    if (socket < 0) {
+        perror("Socket non allocata");
+        return 1;
+    }
     listen(server_fd, 5);
 
     printf("Server in ascolto sulla porta %d...\n", PORT);
 
-    while (1) {
+    while (server_running) {
         client_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
 
         if (client_socket >= 0) {
             int* pclient = malloc(sizeof(int));
             *pclient = client_socket;
-    
+
             pthread_t tid;
             pthread_create(&tid, NULL, handle_client, pclient);
             pthread_detach(tid);
