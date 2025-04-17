@@ -36,3 +36,22 @@ class BufferNuovaPartita:
                 'id_owner': self.id_owner
             }
         }, default=str)
+
+class BufferRichiestaPartita():
+    sig: Segnale
+    id_partita: int
+    id_guest: int
+
+    def __init__(self, id_partita: int, id_guest: int):
+        self.sig = Segnale.GESTISCI_GUEST
+        self.id_partita = id_partita
+        self.id_guest = id_guest
+
+    def serialize(self):
+        return json.dumps({
+            'segnale': self.sig.value,
+            'gestisci_guest': {
+                'id_partita': self.id_partita,
+                'id_guest': self.id_guest,
+            }
+        }, default=str)

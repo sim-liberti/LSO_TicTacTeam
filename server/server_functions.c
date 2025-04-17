@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "utils/cJSON.h"
 
 #include "server_functions.h"
@@ -34,7 +35,8 @@ char* crea_nuova_partita(buffer_nuova_partita *nuova_partita, partita *lista_par
             return visualizza_partite(lista_partite);
         }
     }    
-    // Aggiungi alla lista delle partite del giocatore la partita creata
+    
+    return "Errore: Nessuno slot disponibile per creare una nuova partita.";
 }
 
 char* inserisci_mossa(buffer_nuova_mossa *nuova_mossa, partita *lista_partite, fine_partita_enum *stato_fine){
@@ -95,12 +97,17 @@ char* inserisci_mossa(buffer_nuova_mossa *nuova_mossa, partita *lista_partite, f
     return response;
 }
 
-char* gestisci_richiesta_guest(char *buffer){
+char* gestisci_richiesta_guest(buffer_gestisci_guest *buffer, partita *lista_partite, int *socket_destinatario){ 
     /*Il buffer contiene l'id della partita e l'id del guest
     invio un messaggio all'owner della partita del tipo "Il giocatore id_guest vuole unirsi alla partita id_partita, accetti?"
     se accetta aggiorno il guest della partita, lo status con "In_Corso" e la starto (aspetto le mosse)
     se rifiuta invio un messaggio al guest del tipo "Partita id_partita rifiutata"
     */
+
+    *socket_destinatario = lista_partite[buffer->id_partita].id_owner;
+    char response[100];
+    sprintf(response, "Il giocatore %d vuole unirsi alla partita %d. Accettare? ", buffer->id_guest, buffer->id_partita);
+    return response;
 }
 
 char* gestisci_pareggio(buffer_gestisci_pareggio *buffer, partita *lista_partite){
@@ -199,6 +206,19 @@ void json_to_buffer(char *json_input, buffer_generico *buffer){
             
             break;
         case GESTISCI_GUEST:
+            buffer->segnale = GESTISCI_GUEST;
+            cJSON *gestisci_guest_json = cJSON_GetObjectItem(json_obj, "gestisci_guest");
+
+            if (gestisci_guest_json == NULL) 
+                return;
+
+            buffer->gestisci_guest.id_partita = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(gestisci_guest_json, "id_partita")
+            );
+            buffer->gestisci_guest.id_guest = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(gestisci_guest_json, "id_guest")
+            );
+            
             break;
         case GESTISCI_PAREGGIO:
             break;
@@ -225,3 +245,4 @@ int controlla_vittoria(int partita[3][3], int coord_x, int coord_y) {
 
     return 0; 
 }
+
