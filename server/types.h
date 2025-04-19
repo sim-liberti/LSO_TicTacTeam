@@ -1,7 +1,22 @@
 #ifndef TRIS_STRUCTS_H
 #define TRIS_STRUCTS_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <pthread.h>
+#include <signal.h>
+#include <stdbool.h>
+
+#ifdef _WIN32
+// Implementazione Socket Windows
+#include <Winsock2.h> 
+#include <ws2tcpip.h>
+#else
+// Implementazione Socket Linux
+#include <arpa/inet.h> 
+#endif
 
 #define MAX_ARRAY_LEN 100
 

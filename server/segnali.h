@@ -5,9 +5,10 @@ typedef enum segnali_buffer_enum {
     LISTA_PARTITE = 0,
     NUOVA_PARTITA = 1,
     NUOVA_MOSSA = 2,
-    GESTISCI_GUEST = 3,
-    GESTISCI_PAREGGIO = 4,
-    CANCELLA_PARTITA = 5
+    NOTIFICA_GUEST = 3,
+    RISPOSTA_GUEST = 4,
+    GESTISCI_PAREGGIO = 5,
+    CANCELLA_PARTITA = 6
 } segnali_buffer_enum;
 
 typedef struct buffer_nuova_partita {
@@ -23,11 +24,17 @@ typedef struct buffer_nuova_mossa {
     int turno;
 } buffer_nuova_mossa;
 
-typedef struct buffer_gestisci_guest {
+typedef struct buffer_notifica_guest {
     int id_partita;
     int id_guest;
     int stato_guest;
-} buffer_gestisci_guest;
+} buffer_notifica_guest;
+
+typedef struct buffer_risposta_guest {
+    int id_partita;
+    int id_guest;
+    int risposta_owner;
+} buffer_risposta_guest;
 
 typedef struct buffer_gestisci_pareggio {
     int id_partita;
@@ -44,7 +51,8 @@ typedef struct buffer_generico{
     union {
         buffer_nuova_partita nuova_partita;
         buffer_nuova_mossa nuova_mossa;
-        buffer_gestisci_guest gestisci_guest;
+        buffer_notifica_guest notifica_guest;
+        buffer_risposta_guest risposta_guest;
         buffer_gestisci_pareggio gestisci_pareggio;
         buffer_cancella_partita cancella_partita;
     };

@@ -6,9 +6,10 @@ class Segnale(Enum):
     LISTA_PARTITE = 0
     NUOVA_PARTITA = 1
     NUOVA_MOSSA = 2
-    GESTISCI_GUEST = 3
-    GESTISCI_PAREGGIO = 4
-    CANCELLA_PARTITA = 5
+    NOTIFICA_GUEST = 3
+    RISPOSTA_GUEST = 4
+    GESTISCI_PAREGGIO = 5
+    CANCELLA_PARTITA = 6
 
 class BufferListaPartite:
     sig: Segnale
@@ -43,15 +44,37 @@ class BufferRichiestaPartita():
     id_guest: int
 
     def __init__(self, id_partita: int, id_guest: int):
-        self.sig = Segnale.GESTISCI_GUEST
+        self.sig = Segnale.NOTIFICA_GUEST
         self.id_partita = id_partita
         self.id_guest = id_guest
 
     def serialize(self):
         return json.dumps({
             'segnale': self.sig.value,
-            'gestisci_guest': {
+            'notifica_guest': {
                 'id_partita': self.id_partita,
                 'id_guest': self.id_guest,
+            }
+        }, default=str)
+    
+class BufferAccettaRichiesta():
+    sig: Segnale
+    id_partita: int
+    id_guest: int
+    risposta: int
+
+    def __init__(self, id_partita: int, id_guest: int, risposta: int):
+        self.sig = Segnale.RISPOSTA_GUEST
+        self.id_partita = id_partita
+        self.id_guest = id_guest
+        self.risposta = risposta
+
+    def serialize(self):
+        return json.dumps({
+            'segnale': self.sig.value,
+            'risposta_guest': {
+                'id_partita': self.id_partita,
+                'id_guest': self.id_guest,
+                'risposta_owner': self.risposta
             }
         }, default=str)

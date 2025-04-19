@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "utils/cJSON.h"
 
 #include "server_functions.h"
@@ -97,17 +96,43 @@ char* inserisci_mossa(buffer_nuova_mossa *nuova_mossa, partita *lista_partite, f
     return response;
 }
 
-char* gestisci_richiesta_guest(buffer_gestisci_guest *buffer, partita *lista_partite, int *socket_destinatario){ 
-    /*Il buffer contiene l'id della partita e l'id del guest
-    invio un messaggio all'owner della partita del tipo "Il giocatore id_guest vuole unirsi alla partita id_partita, accetti?"
-    se accetta aggiorno il guest della partita, lo status con "In_Corso" e la starto (aspetto le mosse)
-    se rifiuta invio un messaggio al guest del tipo "Partita id_partita rifiutata"
-    */
-
+char* notifica_richiesta_guest(buffer_notifica_guest *buffer, partita *lista_partite, int *socket_destinatario){ 
     *socket_destinatario = lista_partite[buffer->id_partita].id_owner;
-    char response[100];
-    sprintf(response, "Il giocatore %d vuole unirsi alla partita %d. Accettare? ", buffer->id_guest, buffer->id_partita);
+    char *response = malloc(300);
+    sprintf(response, "{\"notifica\": \"Il giocatore %d vuole unirsi alla partita %d.\", \"id_guest\": %d, \"id_partita\": %d}", buffer->id_guest, buffer->id_partita, buffer->id_guest, buffer->id_partita);
     return response;
+}
+
+char* accetta_rifiuta_guest(buffer_risposta_guest *buffer, partita *lista_partite, int socket) {
+    int risposta_owner = buffer->risposta_owner;
+    char *response_owner = malloc(100);
+    char *response_guest = malloc(100);
+    
+    if (!risposta_owner) {
+        // Da mandare al guest
+        sprintf(response_guest, "{\"notifica\": \"La richiesta alla partita %d è stata rifiutata.\"}", buffer->id_partita);
+        return response_guest;
+    }
+
+    int i = 0;
+    while ((lista_partite[i].id_guest != buffer->id_guest) && (i < MAX_ARRAY_LEN)){
+        if (lista_partite[i].id_guest == buffer->id_guest) {
+            // Da mandare all'owner
+            sprintf(response_owner, "{\"notifica\": \"L'utente è già in partita\"}", buffer->id_partita);
+            return response_owner;
+        }
+        i++;
+    }
+
+    partita *partita_corrente = &lista_partite[buffer->id_partita];
+    partita_corrente->id_guest = buffer->id_guest;
+    partita_corrente->stato_partita = IN_CORSO;
+
+    sprintf(response_owner, "{\"segnale\": \"La partita sta per iniziare\"}", buffer->id_partita);
+
+    send(socket, response_owner, strlen(response_owner), 0);
+    send(buffer->id_guest, response_owner, strlen(response_owner), 0);
+    return "";
 }
 
 char* gestisci_pareggio(buffer_gestisci_pareggio *buffer, partita *lista_partite){
@@ -205,18 +230,36 @@ void json_to_buffer(char *json_input, buffer_generico *buffer){
             );
             
             break;
-        case GESTISCI_GUEST:
-            buffer->segnale = GESTISCI_GUEST;
-            cJSON *gestisci_guest_json = cJSON_GetObjectItem(json_obj, "gestisci_guest");
+        case NOTIFICA_GUEST:
+            buffer->segnale = NOTIFICA_GUEST;
+            cJSON *notifica_guest_json = cJSON_GetObjectItem(json_obj, "notifica_guest");
 
-            if (gestisci_guest_json == NULL) 
+            if (notifica_guest_json == NULL) 
                 return;
 
-            buffer->gestisci_guest.id_partita = cJSON_GetNumberValue(
-                cJSON_GetObjectItem(gestisci_guest_json, "id_partita")
+            buffer->notifica_guest.id_partita = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(notifica_guest_json, "id_partita")
             );
-            buffer->gestisci_guest.id_guest = cJSON_GetNumberValue(
-                cJSON_GetObjectItem(gestisci_guest_json, "id_guest")
+            buffer->notifica_guest.id_guest = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(notifica_guest_json, "id_guest")
+            );
+            
+            break;
+        case RISPOSTA_GUEST:
+            buffer->segnale = RISPOSTA_GUEST;
+            cJSON *risposta_guest_json = cJSON_GetObjectItem(json_obj, "risposta_guest");
+
+            if (risposta_guest_json == NULL) 
+                return;
+
+            buffer->risposta_guest.id_partita = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(risposta_guest_json, "id_partita")
+            );
+            buffer->risposta_guest.id_guest = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(risposta_guest_json, "id_guest")
+            );
+            buffer->risposta_guest.risposta_owner = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(risposta_guest_json, "risposta_owner")
             );
             
             break;

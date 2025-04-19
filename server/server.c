@@ -1,20 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <signal.h>
-#include <stdbool.h>
-
-#ifdef _WIN32
-// Implementazione Socket Windows
-#include <Winsock2.h> 
-#include <ws2tcpip.h>
-#else
-// Implementazione Socket Linux
-#include <arpa/inet.h> 
-#endif
-
 #include "server_functions.h"
 
 #define PORT 8080
@@ -41,9 +24,11 @@ void* handle_client(void* arg) {
     sprintf(first_conn, "%d||%s", client_socket, visualizza_partite(mem.lista_partite));
     send(client_socket, first_conn, strlen(first_conn), 0);
 
+    int socket_destinatario;
     int read_bytes;
     while ((read_bytes = recv(client_socket, buffer_str, sizeof(buffer_str) - 1, 0)) > 0) {
         // printf("Ricevuto segnale da client: %d\n", client_socket);
+
         buffer_str[read_bytes] = '\0';
         // printf("Ecco il buffer: %s\n", buffer_str);
 
@@ -51,7 +36,7 @@ void* handle_client(void* arg) {
         json_to_buffer(buffer_str, &buffer);
         
         char* dynamic_response = NULL;
-        int socket_destinatario = client_socket;
+        socket_destinatario = client_socket;
 
         switch(buffer.segnale){
             case LISTA_PARTITE:
@@ -68,8 +53,11 @@ void* handle_client(void* arg) {
                 fine_partita_enum stato_fine;
                 dynamic_response = inserisci_mossa(&buffer.nuova_mossa, mem.lista_partite, &stato_fine);
                 break;
-            case GESTISCI_GUEST:
-                dynamic_response = gestisci_richiesta_guest(&buffer.gestisci_guest, mem.lista_partite, &socket_destinatario);
+            case NOTIFICA_GUEST:
+                dynamic_response = notifica_richiesta_guest(&buffer.notifica_guest, mem.lista_partite, &socket_destinatario);
+                break;
+            case RISPOSTA_GUEST:
+                dynamic_response = accetta_rifiuta_guest(&buffer.risposta_guest, mem.lista_partite, client_socket);
                 break;
             case GESTISCI_PAREGGIO:
                 dynamic_response = gestisci_pareggio(&buffer.gestisci_pareggio, mem.lista_partite);
@@ -79,9 +67,15 @@ void* handle_client(void* arg) {
                 break;
         }
 
-        send(socket_destinatario, dynamic_response, strlen(dynamic_response), 0);
-        free(dynamic_response); // solo se è stato allocato dinamicamente
-        socket_destinatario = client_socket;
+        if (buffer.segnale != RISPOSTA_GUEST) {
+            send(socket_destinatario, dynamic_response, strlen(dynamic_response), 0);
+            free(dynamic_response); // solo se è stato allocato dinamicamente
+    
+            if (client_socket != socket_destinatario) {
+                char *confirm = "{ \"ok\": true }";
+                send(client_socket, confirm, strlen(confirm), 0);
+            }
+        }
     }
 
     close(client_socket);

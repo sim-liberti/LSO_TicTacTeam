@@ -7,7 +7,8 @@
 char* visualizza_partite(partita *);
 char* crea_nuova_partita(buffer_nuova_partita *, partita *);
 char* inserisci_mossa(buffer_nuova_mossa *, partita *, fine_partita_enum *);
-char* gestisci_richiesta_guest(buffer_gestisci_guest *, partita *, int *);
+char* notifica_richiesta_guest(buffer_notifica_guest *, partita *, int *);
+char* accetta_rifiuta_guest(buffer_risposta_guest *, partita *, int);
 char* gestisci_pareggio(buffer_gestisci_pareggio *, partita *);
 char* cancella_partita(int, partita *);
 

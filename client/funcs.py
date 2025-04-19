@@ -1,8 +1,8 @@
 import json
 from prettytable import PrettyTable
 
-def stampa_lista_partite(lista_json: str):
-    data = json.loads(lista_json)
+def stampa_lista_partite(data: dict):
+    #data = json.loads(lista_json)
     partite = data["lista_partite"]
     table = PrettyTable()
     table.field_names = ["ID Partita", "ID Owner", "Stato Partita"]

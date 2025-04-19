@@ -1,76 +1,119 @@
-import socket, os, threading
+import socket, os, threading, json, time
 from queue import Queue
 
 import utils
 import funcs
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
 server_address = ('localhost', 8080)
 client_socket.connect(server_address)
 
-os.system('cls' if os.name == 'nt' else 'clear')
+queue_risposte = Queue()
+queue_notifiche = Queue()
 
 first_conn_data = client_socket.recv(1024).decode().split("||")
+
+os.system('cls' if os.name == 'nt' else 'clear')
 
 client_id = int(first_conn_data[0])
 print(f"Il tuo id è: {client_id}")
 
+lista_partite = json.loads(first_conn_data[1])
 print("\nLista partite:")
-funcs.stampa_lista_partite(first_conn_data[1])
+funcs.stampa_lista_partite(lista_partite)
 
-coda_richieste = Queue()
-
-def ricevi_richieste(sock):
+def ricevi_messaggi(sock):
     while True:
         try:
-            msg = sock.recv(1024).decode()
-            if msg:
-                coda_richieste.put(msg)
-            else:
+            msg: str = sock.recv(1024).decode()
+            if not msg:
+                print("Connessione chiusa.")
                 break
+
+            try:
+                data = json.loads(msg)
+            except json.JSONDecodeError:
+                queue_notifiche.put(msg)
+                continue
+
+            if isinstance(data, dict) and "notifica" in data:
+                queue_notifiche.put(data)
+                print(f"Notifica in attesa: {data}")
+            else:
+                queue_risposte.put(data)
+                print(f"Segnale arrivato: {data}")
+
         except:
             print("Errore nella ricezione.")
             break
-            
-threading.Thread(target=ricevi_richieste, args=(client_socket,), daemon=True).start()
+
+def attesa_risposta(timeout=5):
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        if not queue_risposte.empty():
+            return queue_risposte.get()
+        time.sleep(0.1)
+    return None
+
+threading.Thread(target=ricevi_messaggi, args=(client_socket,), daemon=True).start()
 
 while(True):
 
     print('''\nScegli cosa fare
-          - RICARICA LISTA (r)
-          - NUOVA PARTITA(n)
-          - ENTRA IN PARTITA(p)
-          - ESCI(q)''')
+    - RICARICA LISTA (r)
+    - NUOVA PARTITA (n)
+    - ENTRA IN PARTITA (p)
+    - ACCETTA RICHIESTA (a)
+    - ESCI (q)''')
     scelta = input(": ")
-
-    while not coda_richieste.empty():
-        print(f"Messaggio in attesa: {coda_richieste.get()}")
 
     if scelta == "r":
 
-        segnale = utils.BufferListaPartite()
-        client_socket.send(segnale.serialize().encode('utf-8'))
-        lista_json = client_socket.recv(1024).decode()
-        os.system('cls' if os.name == 'nt' else 'clear')
-        funcs.stampa_lista_partite(lista_json)
-        
+        buffer = utils.BufferListaPartite()
+        client_socket.send(buffer.serialize().encode('utf-8'))
+        risposta = attesa_risposta()
+        if risposta:
+            lista_partite = risposta
+            os.system('cls' if os.name == 'nt' else 'clear')
+            funcs.stampa_lista_partite(risposta)
+            
     elif scelta == "n":
 
-        partita = utils.BufferNuovaPartita(client_id)
-        client_socket.send(partita.serialize().encode('utf-8'))
-        data = client_socket.recv(1024)
-        os.system('cls' if os.name == 'nt' else 'clear')
-        funcs.stampa_lista_partite(data.decode())
+        buffer = utils.BufferNuovaPartita(client_id)
+        client_socket.send(buffer.serialize().encode('utf-8'))
+        risposta = attesa_risposta()
+        if risposta:
+            lista_partite = risposta
+            os.system('cls' if os.name == 'nt' else 'clear')
+            funcs.stampa_lista_partite(risposta)
 
     elif scelta == "p":
         
         id_partita = int(input("Scegli una partita (id): "))
-        richiesta = utils.BufferRichiestaPartita(id_partita, client_id)
-        client_socket.send(richiesta.serialize().encode('utf-8'))
-        # Invio al server id_partita
-        # Il server risponde con la griglia dopo aver controllato
-        # gli id dei giocatori
+        buffer = utils.BufferRichiestaPartita(id_partita, client_id)
+        client_socket.send(buffer.serialize().encode('utf-8'))
+        risposta = attesa_risposta()
+        if risposta:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print("Richiesta per la partita inviata.")
+            funcs.stampa_lista_partite(lista_partite)
+
+    elif scelta == "a":
+        
+        print("...")
+
+        if queue_notifiche.empty():
+            print("nessuna notifica")
+            continue
+
+        data = queue_notifiche.get()
+        id_partita = data["id_partita"]
+        id_guest = data["id_guest"]
+        buffer = utils.BufferAccettaRichiesta(id_partita, id_guest, 1)
+        client_socket.send(buffer.serialize().encode('utf-8'))
+        risposta = attesa_risposta()
+        if risposta:
+            print(risposta)
 
     elif scelta == "q":
         break
