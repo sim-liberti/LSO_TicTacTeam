@@ -22,16 +22,16 @@
 #define PORT 8080
 
 typedef struct {
-    struct game games_list[100];
+    struct match match_list[100];
     pthread_mutex_t lock;
 } SharedMemory;
 
 extern SharedMemory mem;
 
-typedef struct game{
-    int id_game;
+typedef struct match{
+    int match_id;
     int owner_id;
-    int id_guest;
+    int guest_id;
     //stato_partita_enum stato_partita;
     int grid[3][3];
     int turn;
@@ -42,6 +42,6 @@ typedef struct game{
     pthread_cond_t cond;
     pthread_cond_t cond_turno_owner;
     pthread_cond_t cond_turno_guest;
-} game;
+} match;
 
 #endif // TRIS_COMM_H

@@ -4,12 +4,12 @@
 #include "common.h"
 #include "signal.h"
 
-char* get_match_list();
-char* create_new_match();
-char* make_move();
-char* send_guest_request();
-char* send_guest_response();
-char* handle_draw();
-char* delete_match();
+cJSON* get_match_list(match *);
+cJSON* create_new_match(create_new_match_buffer*, match *);
+cJSON* make_move();
+cJSON* send_guest_request();
+cJSON* send_guest_response();
+cJSON* handle_draw();
+cJSON* delete_match();
 
 #endif // TRIS_LOGIC_H

@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "logic.h"
 
 void json_to_buffer(char *json, generic_buffer *buffer){
     cJSON *json_obj = cJSON_Parse(json);
@@ -83,4 +84,58 @@ void json_to_buffer(char *json, generic_buffer *buffer){
             );
         break;
     }
+}
+
+cJSON* build_message(message_type_enum message_type, generic_buffer *buffer){
+    cJSON *message = cJSON_CreateObject();
+
+    switch(message_type) {
+        case MESSAGE_NOTIFICATION:
+            cJSON_AddStringToObject(message, "type", "notification");
+        break;
+        case MESSAGE_ALERT:
+            cJSON_AddStringToObject(message, "type", "alert");
+        break;
+        case MESSAGE_RESPONSE:
+            cJSON_AddStringToObject(message, "type", "response");
+        break;
+    }
+
+    cJSON *content;
+    switch(buffer->sig) {
+        case SIG_GET_MATCH_LIST:
+            content = get_match_list(mem.match_list);
+        break;
+        case SIG_CREATE_NEW_MATCH:
+            content = create_new_match(buffer, mem.match_list);
+        break;
+        case SIG_MAKE_MOVE:
+            content = make_move();
+        break;
+        case SIG_GUEST_REQUEST:
+            content = send_guest_request();
+        break;
+        case SIG_GUEST_RESPONSE:
+            content = send_guest_response();
+        break;
+        case SIG_HANDLE_DRAW:
+            content = handle_draw();
+        break;
+        case SIG_DELETE_MATCH:
+            content = delete_match();
+        break;
+    }
+
+    cJSON_AddItemToObject(message, "content", content);
+    return message;
+}
+
+int send_message(int socket_fd, message_type_enum message_type, generic_buffer *buffer){
+    cJSON *message = build_message(message_type, buffer);
+    char* message_str = cJSON_PrintUnformatted(message);
+    int sent = send(socket_fd, message, strlen(message_str), 0);
+    
+    free(message_str);
+    cJSON_Delete(message);
+    return sent;
 }
