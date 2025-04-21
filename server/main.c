@@ -1,4 +1,4 @@
-#include "include/handler.h"
+#include "handler.h"
 
 SharedMemory mem;
 volatile sig_atomic_t server_running = 1;

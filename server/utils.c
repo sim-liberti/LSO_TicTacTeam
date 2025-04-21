@@ -1,7 +1,7 @@
 #include "utils.h"
 #include "logic.h"
 
-void json_to_buffer(char *json, generic_buffer *buffer){
+void convert_json_to_buffer(char *json, generic_buffer *buffer){
     cJSON *json_obj = cJSON_Parse(json);
     if (json_obj == NULL) {
         //printf("Errore JSON");
@@ -18,7 +18,7 @@ void json_to_buffer(char *json, generic_buffer *buffer){
         break;
         case SIG_CREATE_NEW_MATCH:
             buffer->sig = SIG_CREATE_NEW_MATCH;
-            cJSON *new_mach_json = cJSON_GetObjectItem(json, "new_match");
+            cJSON *new_mach_json = cJSON_GetObjectItem(json_obj, "new_match");
             if (new_mach_json == NULL) 
                 return;
             buffer->new_match.owner_id = cJSON_GetNumberValue(
@@ -80,13 +80,27 @@ void json_to_buffer(char *json, generic_buffer *buffer){
             buffer->sig = SIG_DELETE_MATCH;
             cJSON *delete_match_json = cJSON_GetObjectItem(json_obj, "delete_match");
             buffer->delete_match.match_id = cJSON_GetNumberValue(
-                cJSON_GetObjectItem(guest_response_json, "match_id")
+                cJSON_GetObjectItem(delete_match_json, "match_id")
             );
         break;
     }
 }
 
-cJSON* build_message(message_type_enum message_type, generic_buffer *buffer){
+cJSON* build_first_connection_message(int socket_id, match *match_list) {
+    cJSON *message = cJSON_CreateObject();
+
+    cJSON_AddStringToObject(message, "type", "first_connection");
+
+    cJSON *content = cJSON_CreateObject();
+    cJSON_AddNumberToObject(content, "socket_id", socket_id);
+    cJSON_AddItemToObject(content, "match_list", get_match_list(match_list));  // restituisce array o oggetto
+
+    cJSON_AddItemToObject(message, "content", content);
+
+    return message;
+}
+
+cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buffer *buffer){
     cJSON *message = cJSON_CreateObject();
 
     switch(message_type) {
@@ -107,13 +121,13 @@ cJSON* build_message(message_type_enum message_type, generic_buffer *buffer){
             content = get_match_list(mem.match_list);
         break;
         case SIG_CREATE_NEW_MATCH:
-            content = create_new_match(buffer, mem.match_list);
+            content = create_new_match(&buffer->new_match, mem.match_list);
         break;
         case SIG_MAKE_MOVE:
             content = make_move();
         break;
         case SIG_GUEST_REQUEST:
-            content = send_guest_request();
+            content = send_guest_request(socket_fd, &buffer->guest_request, mem.match_list);
         break;
         case SIG_GUEST_RESPONSE:
             content = send_guest_response();
@@ -131,7 +145,7 @@ cJSON* build_message(message_type_enum message_type, generic_buffer *buffer){
 }
 
 int send_message(int socket_fd, message_type_enum message_type, generic_buffer *buffer){
-    cJSON *message = build_message(message_type, buffer);
+    cJSON *message = build_message(socket_fd, message_type, buffer);
     char* message_str = cJSON_PrintUnformatted(message);
     int sent = send(socket_fd, message, strlen(message_str), 0);
     

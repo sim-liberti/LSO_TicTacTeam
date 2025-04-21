@@ -21,13 +21,6 @@
 #define MAX_GAMES_NUM 100
 #define PORT 8080
 
-typedef struct {
-    struct match match_list[100];
-    pthread_mutex_t lock;
-} SharedMemory;
-
-extern SharedMemory mem;
-
 typedef struct match{
     int match_id;
     int owner_id;
@@ -43,5 +36,12 @@ typedef struct match{
     pthread_cond_t cond_turno_owner;
     pthread_cond_t cond_turno_guest;
 } match;
+
+typedef struct {
+    match match_list[100];
+    pthread_mutex_t lock;
+} SharedMemory;
+
+extern SharedMemory mem;
 
 #endif // TRIS_COMM_H

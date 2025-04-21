@@ -10,8 +10,8 @@ else
 endif
 
 CC = gcc
-CFLAGS = -Wall -g -Iinclude -Ilibs
-SRCS = $(wildcard *.c) utils/cJSON.c
+CFLAGS = -Wall -g -Iinclude -Ilib
+SRCS = $(wildcard *.c) $(wildcard lib/*.c) $(wildcard utils/*.c)
 OBJS = $(SRCS:.c=.o)
 
 all: $(TARGET)

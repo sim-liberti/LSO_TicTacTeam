@@ -1,3 +1,3 @@
-#include "include/common.h"
+#include "common.h"
 
 void* handle_client(void* arg);

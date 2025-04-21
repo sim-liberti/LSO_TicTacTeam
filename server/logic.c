@@ -1,7 +1,7 @@
 #include "logic.h"
 #include "utils.h"
 
-cJSON* get_match_list(match match_list[MAX_GAMES_NUM]){
+cJSON* get_match_list(match *match_list){
     cJSON *array = cJSON_CreateArray();
     for (int i = 0; i < MAX_GAMES_NUM; i++) {
         if (match_list[i].owner_id != 0) {
@@ -31,7 +31,7 @@ cJSON* create_new_match(create_new_match_buffer *buffer, match *match_list){
 }
 
 cJSON* make_move(){
-
+    return NULL;
 }
 
 cJSON* send_guest_request(int socket_fd, guest_request_buffer *buffer, match *match_list){
@@ -51,17 +51,16 @@ cJSON* send_guest_request(int socket_fd, guest_request_buffer *buffer, match *ma
     cJSON_AddStringToObject(guest_payload, "info", "request to join sent");
     cJSON_AddNumberToObject(guest_payload, "match_id", buffer->match_id);
     return guest_payload;
-
 }
 
 cJSON* send_guest_response(){
-
+    return NULL;
 }
 
 cJSON* handle_draw(){
-
+    return NULL;
 }
 
 cJSON* delete_match(){
-
+    return NULL;
 }
