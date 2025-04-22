@@ -7,10 +7,12 @@ void convert_json_to_buffer(char *json, generic_buffer *buffer){
         //printf("Errore JSON");
         return;
     }
-    
-    signals_enum sig = cJSON_GetNumberValue(
-        cJSON_GetObjectItem(json_obj, "segnale")
-    );
+    cJSON *sig_item = cJSON_GetObjectItem(json_obj, "sig");
+    if (sig_item == NULL || !cJSON_IsNumber(sig_item)){
+        printf("[ERROR] Signal not found in buffer");
+        return;
+    }
+    signals_enum sig = cJSON_GetNumberValue(sig_item);
 
     switch(sig){
         case SIG_GET_MATCH_LIST:
@@ -115,13 +117,13 @@ cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buff
         break;
     }
 
-    cJSON *content;
+    cJSON *content = cJSON_CreateObject();
     switch(buffer->sig) {
         case SIG_GET_MATCH_LIST:
-            content = get_match_list(mem.match_list);
+            cJSON_AddItemToObject(content, "match_list", get_match_list(mem.match_list));
         break;
         case SIG_CREATE_NEW_MATCH:
-            content = create_new_match(&buffer->new_match, mem.match_list);
+            cJSON_AddItemToObject(content, "match_list", create_new_match(&buffer->new_match, mem.match_list));
         break;
         case SIG_MAKE_MOVE:
             content = make_move();
@@ -146,8 +148,8 @@ cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buff
 
 int send_message(int socket_fd, message_type_enum message_type, generic_buffer *buffer){
     cJSON *message = build_message(socket_fd, message_type, buffer);
-    char* message_str = cJSON_PrintUnformatted(message);
-    int sent = send(socket_fd, message, strlen(message_str), 0);
+    char *message_str = cJSON_PrintUnformatted(message);
+    int sent = send(socket_fd, message_str, strlen(message_str), 0);
     
     free(message_str);
     cJSON_Delete(message);

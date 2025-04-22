@@ -2,6 +2,5 @@
 .vscode/
 .venv/
 
-*.exe
-*.out
-*.o
+build/
+__pycache__/

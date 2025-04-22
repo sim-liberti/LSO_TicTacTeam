@@ -21,11 +21,18 @@
 #define MAX_GAMES_NUM 100
 #define PORT 8080
 
+typedef enum match_state_enum {
+    MATCH_STATE_CREATING   = 0,
+    MATCH_STATE_WAITING    = 1,
+    MATCH_STATE_ONGOING    = 2,
+    MATCH_STATE_COMPLETED  = 3
+} match_state_enum;
+
 typedef struct match{
     int match_id;
     int owner_id;
     int guest_id;
-    //stato_partita_enum stato_partita;
+    match_state_enum match_state;
     int grid[3][3];
     int turn;
 

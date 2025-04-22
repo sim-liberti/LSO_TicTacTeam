@@ -2,13 +2,16 @@
 #include "buffer.h"
 #include "utils.h"
 
+void handle_sigint(int sig) {
+    printf("\n[INFO] SIGINT received. Exiting cleanly...\n");
+    server_running = 0;
+}
+
 void* handle_client(void* arg) {
     int client_socket = *(int*)arg;
     free(arg);
 
     char buffer_str[2048];
-
-    printf("Client %d connected.\n", client_socket);
 
     // Invia lista partite iniziale
     cJSON *welcome_msg = build_first_connection_message(client_socket, mem.match_list);
