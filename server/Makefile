@@ -1,26 +1,29 @@
 # Detect OS
 ifeq ($(OS),Windows_NT)
-    TARGET = server.exe
+    TARGET = build/server.exe
     RM = del /Q
     LDFLAGS = -lws2_32
 else
-    TARGET = server.out
+    TARGET = build/server.out
     RM = rm -f
     LDFLAGS =
 endif
 
 CC = gcc
-CFLAGS = -Wall -g
-SRCS = $(wildcard *.c) utils/cJSON.c
-OBJS = $(SRCS:.c=.o)
+CFLAGS = -Wall -g -Iinclude -Ilib
+SRCS = $(wildcard *.c) $(wildcard lib/*.c) $(wildcard utils/*.c)
+OBJS = $(patsubst %.c, build/%.o, $(SRCS))
 
-all: $(TARGET)
+all: build $(TARGET)
+
+build:
+	mkdir -p build/lib build/utils
 
 $(TARGET): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
-%.o: %.c
+build/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(RM) *.o $(TARGET)
+	$(RM) build/*.o build/*/*.o $(TARGET)
