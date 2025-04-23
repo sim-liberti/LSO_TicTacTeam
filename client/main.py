@@ -2,7 +2,7 @@ from time import sleep
 
 import core.globals as globals
 import core.buffers as buffers
-import ui.cli as cli
+import gui.cli as cli
 from core.connection import ClientConnection
 # from core.handler import handle_message
 
