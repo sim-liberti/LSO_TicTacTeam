@@ -69,7 +69,24 @@ class FrameMatches(ctk.CTkScrollableFrame):
         ctk.CTkLabel(master=self, text=owner, text_color=TEXT_COLOR, font=FONT).grid(row=row, column=0, pady=3, sticky="nwes")
         ctk.CTkLabel(master=self, text=match_id, text_color=TEXT_COLOR, font=FONT).grid(row=row, column=1, pady=3, sticky="nwes")
         ctk.CTkLabel(master=self, text=status, width=10, text_color=color, font=FONT).grid(row=row, column=2, pady=3, sticky="nwes")
-        ctk.CTkButton(master=self, text="Entra", textvariable=match_id, command=lambda: self.send_request(match_id)).grid(row=row, column=3, pady=3, sticky="nwes")
+        ctk.CTkButton(master=self, text="Entra", textvariable=match_id, command=lambda: self.send_match_request(match_id)).grid(row=row, column=3, pady=3, sticky="nwes")
+
+    def send_match_request(self,match_id):
+        if controller.send_match_request(match_id,globals.socket_id):
+            self.mostra_popup()
+            
+    def mostra_popup(self):
+        popup = ctk.CTkToplevel(self)
+        popup.geometry("300x150")
+        popup.lift()
+        popup.attributes('-topmost', True)
+
+        label = ctk.CTkLabel(popup, text="Richiesta di accesso inviata", font=FONT)
+        label.pack(pady=20)
+
+        chiudi_btn = ctk.CTkButton(popup, text="Chiudi", command=popup.destroy, font=FONT)
+        chiudi_btn.pack(pady=10)        
+        
 
     def display_matches(self, match_list):
         row = 3
@@ -82,8 +99,6 @@ class FrameMatches(ctk.CTkScrollableFrame):
         if match_list_refreshed:
             globals.app.switch_frame(HomeFrame)
 
-    def send_request(self, match_id):
-        print(f"Request for {match_id}")
 
 class FrameYourMatches(ctk.CTkScrollableFrame):
     def __init__(self, master, *args, **kwargs):

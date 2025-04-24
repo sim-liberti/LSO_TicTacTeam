@@ -30,3 +30,12 @@ def delete_match(match_id: int) -> bool:
         return True
 
     return False
+
+def send_match_request(match_id: int, guest_id: int) -> str:
+    buffer = buffers.GuestRequestBuffer(match_id, guest_id)
+    globals.client.send_message(buffer.serialize())
+    response = globals.client.wait_response(timeout=150)
+    if response:
+        return globals.client.response_queue.get()
+
+    return ""
