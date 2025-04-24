@@ -12,16 +12,17 @@ HOST = 'localhost'
 PORT = 8080
 
 def main():
-    # client = ClientConnection(HOST, PORT)
-    # client.connect()
-    # if not client.is_connected:
-    #     return
+    globals.client = ClientConnection(HOST, PORT)
+    globals.client.connect()
+    if not globals.client.is_connected:
+        return
     
-    # client.first_msg_received.wait()
+    globals.client.first_msg_received.wait()
+
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("dark-blue")
-    app = App()
-    app.mainloop()
+    globals.app = App()
+    globals.app.mainloop()
     
 
 if __name__ == "__main__":

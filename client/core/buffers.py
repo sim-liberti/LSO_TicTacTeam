@@ -37,6 +37,22 @@ class CreateNewMatchBuffer:
             }
         }, default=str)
 
+class DeleteMatchBuffer:
+    sig: Signal
+    match_id: int
+
+    def __init__(self, match_id: int):
+        self.sig = Signal.SIG_DELETE_MATCH
+        self.match_id = match_id
+
+    def serialize(self):
+        return json.dumps({
+            'sig': self.sig.value,
+            'delete_match': {
+                'match_id': self.match_id
+            }
+        })
+
 class GuestRequestBuffer():
     sig: Signal
     match_id: int

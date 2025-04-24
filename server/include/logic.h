@@ -12,6 +12,6 @@ cJSON* make_move();
 cJSON* send_guest_request(int, guest_request_buffer *, match *);
 cJSON* send_guest_response();
 cJSON* handle_draw();
-cJSON* delete_match();
+cJSON* delete_match(delete_match_buffer *, match *);
 
 #endif // TRIS_LOGIC_H
