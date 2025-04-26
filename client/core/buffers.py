@@ -93,3 +93,25 @@ class GuestResponseBuffer():
                 'asnw': self.asnw
             }
         }, default=str)
+    
+class HandleDrawBuffer():
+    sig: Signal
+    match_id: int
+    player_id: int
+    asnw: int
+
+    def __init__(self, match_id: int, player_id: int, asnw: int):
+        self.sig = Signal.SIG_GUEST_RESPONSE
+        self.match_id = match_id
+        self.player_id = player_id
+        self.asnw = asnw
+
+    def serialize(self):
+        return json.dumps({
+            'sig': self.sig.value,
+            'handle_draw': {
+                'match_id': self.match_id,
+                'player_id': self.player_id,
+                'asnw': self.asnw
+            }
+        }, default=str)

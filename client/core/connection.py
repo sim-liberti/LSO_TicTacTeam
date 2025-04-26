@@ -8,6 +8,9 @@ class ClientConnection:
     notifications_queue: Queue
     alert_queue: Queue
 
+    client_id: int
+    client_username: str
+
     def __init__(self, host='localhost', port=8080):
         self.host = host
         self.port = port
@@ -76,7 +79,8 @@ class ClientConnection:
                 raise json.JSONDecodeError("Invlid object.", '', 0)
             
             if message_type == "first_connection":
-                globals.socket_id = message_content["socket_id"]
+                self.client_id = message_content["socket_id"]
+                self.client_username = message_content["username"]
                 globals.match_list = message_content["match_list"]
                 if not self.first_msg_received.is_set():
                     self.first_msg_received.set()

@@ -1,7 +1,7 @@
 app = None
 client = None
-socket_id = None
 match_list = []
+current_match = None
 # socket_id = 4
 # match_list = [
 #     {

@@ -1,6 +1,7 @@
 import customtkinter as ctk
 
 from .frames.home_frame import HomeFrame
+from .frames.login_frame import LoginFrame
 
 class App(ctk.CTk):
     def __init__(self):
@@ -8,7 +9,7 @@ class App(ctk.CTk):
         super().__init__()
         self.geometry("900x700")
         self.current_frame = None
-        self.switch_frame(HomeFrame)
+        self.switch_frame(LoginFrame)
 
     def switch_frame(self, frame):
         if self.current_frame:

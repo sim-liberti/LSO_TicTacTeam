@@ -1,7 +1,7 @@
 import customtkinter as ctk
 
-from core import globals
 from core import controller
+import utils
 
 FONT = ("Helvetica", 18)
 TEXT_COLOR = "white"
@@ -45,7 +45,7 @@ class FrameHeader(ctk.CTkFrame):
             #fg_color="lightblue"
         )
         #Il Nickname deve essere ottenuto dalla TextBox della prima GUI
-        self.header_label=ctk.CTkLabel(master=self, text="Benvenuto Nickname", text_color=TEXT_COLOR, font=("Helvetica",30))
+        self.header_label=ctk.CTkLabel(master=self, text=f"{utils.get_client_username()}", text_color=TEXT_COLOR, font=("Helvetica",30))
         self.header_label.pack()
 
 class FrameMatches(ctk.CTkScrollableFrame):
@@ -62,7 +62,7 @@ class FrameMatches(ctk.CTkScrollableFrame):
         ctk.CTkLabel(master=self, text="Id", text_color=TEXT_COLOR, font=FONT).grid(row=2, column=1, pady=10, padx=20, sticky="nwes")
         ctk.CTkLabel(master=self, text="Stato", text_color=TEXT_COLOR, font=FONT).grid(row=2, column=2, pady=10, padx=20, sticky="nwes")
 
-        self.matches = filter(lambda match: match["owner_id"] != globals.socket_id, globals.match_list)
+        self.matches = filter(lambda match: match["owner_id"] != utils.get_client_id(), utils.get_match_list())
         self.display_matches(self.matches)
 
     def add_game_row(self, row, owner, match_id, status, color):
@@ -72,22 +72,12 @@ class FrameMatches(ctk.CTkScrollableFrame):
         ctk.CTkButton(master=self, text="Entra", textvariable=match_id, command=lambda: self.send_match_request(match_id)).grid(row=row, column=3, pady=3, sticky="nwes")
 
     def send_match_request(self,match_id):
-        if controller.send_match_request(match_id,globals.socket_id):
+        if controller.send_match_request(match_id, utils.get_client_id()):
             self.mostra_popup()
             
     def mostra_popup(self):
-        popup = ctk.CTkToplevel(self)
-        popup.geometry("300x150")
-        popup.lift()
-        popup.attributes('-topmost', True)
-
-        label = ctk.CTkLabel(popup, text="Richiesta di accesso inviata", font=FONT)
-        label.pack(pady=20)
-
-        chiudi_btn = ctk.CTkButton(popup, text="Chiudi", command=popup.destroy, font=FONT)
-        chiudi_btn.pack(pady=10)        
+        pass
         
-
     def display_matches(self, match_list):
         row = 3
         for match in match_list:
@@ -95,9 +85,9 @@ class FrameMatches(ctk.CTkScrollableFrame):
             row += 1
 
     def refresh_matches(self):
-        match_list_refreshed = controller.get_match_list()
+        match_list_refreshed = utils.get_match_list()
         if match_list_refreshed:
-            globals.app.switch_frame(HomeFrame)
+            utils.switch_frame(HomeFrame)
 
 
 class FrameYourMatches(ctk.CTkScrollableFrame):
@@ -110,7 +100,7 @@ class FrameYourMatches(ctk.CTkScrollableFrame):
         self.your_matches_label = ctk.CTkLabel(master=self, text="Le tue partite", text_color=TEXT_COLOR, font=FONT)
         self.your_matches_label.grid(row=0, column=0, columnspan=2)
         
-        self.matches = list(filter(lambda match: match["owner_id"] == globals.socket_id, globals.match_list))
+        self.matches = list(filter(lambda match: match["owner_id"] == utils.get_client_id(), utils.get_match_list()))
         self.display_matches(self.matches)
 
         self.create_match_btn = ctk.CTkButton(master=self, text="Crea Partita", command=self.create_match)
@@ -130,12 +120,12 @@ class FrameYourMatches(ctk.CTkScrollableFrame):
     def create_match(self):
         match_created = controller.create_match()
         if match_created: 
-            globals.app.switch_frame(HomeFrame)
+            utils.switch_frame(HomeFrame)
 
     def delete_match(self, match_id):
         match_deleted = controller.delete_match(match_id)
         if match_deleted:
-            globals.app.switch_frame(HomeFrame)
+            utils.switch_frame(HomeFrame)
 
  
 class FrameNotifications(ctk.CTkScrollableFrame):
