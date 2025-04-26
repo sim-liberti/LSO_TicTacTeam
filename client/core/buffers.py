@@ -37,6 +37,22 @@ class CreateNewMatchBuffer:
             }
         }, default=str)
 
+class DeleteMatchBuffer:
+    sig: Signal
+    match_id: int
+
+    def __init__(self, match_id: int):
+        self.sig = Signal.SIG_DELETE_MATCH
+        self.match_id = match_id
+
+    def serialize(self):
+        return json.dumps({
+            'sig': self.sig.value,
+            'delete_match': {
+                'match_id': self.match_id
+            }
+        })
+
 class GuestRequestBuffer():
     sig: Signal
     match_id: int
@@ -74,6 +90,28 @@ class GuestResponseBuffer():
             'guest_response': {
                 'match_id': self.match_id,
                 'guest_id': self.guest_id,
+                'asnw': self.asnw
+            }
+        }, default=str)
+    
+class HandleDrawBuffer():
+    sig: Signal
+    match_id: int
+    player_id: int
+    asnw: int
+
+    def __init__(self, match_id: int, player_id: int, asnw: int):
+        self.sig = Signal.SIG_GUEST_RESPONSE
+        self.match_id = match_id
+        self.player_id = player_id
+        self.asnw = asnw
+
+    def serialize(self):
+        return json.dumps({
+            'sig': self.sig.value,
+            'handle_draw': {
+                'match_id': self.match_id,
+                'player_id': self.player_id,
                 'asnw': self.asnw
             }
         }, default=str)

@@ -8,19 +8,22 @@ cJSON* get_match_list(match *match_list){
             cJSON *p = cJSON_CreateObject();
             cJSON_AddNumberToObject(p, "match_id", match_list[i].match_id);
             cJSON_AddNumberToObject(p, "owner_id", match_list[i].owner_id);
-            //cJSON_AddNumberToObject(p, "stato_partita", match_list[i].stato_partita);
-            cJSON_AddItemToArray(array, p); // aggiunge la partita all'array
+            cJSON_AddNumberToObject(p, "match_state", match_list[i].match_state);
+            cJSON_AddItemToArray(array, p); // aggiunge la match all'array
         }
     }
     return array;
 }
 
 cJSON* create_new_match(create_new_match_buffer *buffer, match *match_list){
+    pthread_mutex_lock(&mem.lock);
+
     for (int i = 0; i < MAX_GAMES_NUM; i++) {
         if (match_list[i].owner_id == 0){
             match_list[i].match_id = i;
             match_list[i].owner_id = buffer->owner_id;
-            //match_list[i].stato_partita = CREAZIONE;
+            //match_list[i].stato_match = CREAZIONE;
+            pthread_mutex_unlock(&mem.lock);
             return get_match_list(match_list);
         }
     }    
@@ -61,6 +64,20 @@ cJSON* handle_draw(){
     return NULL;
 }
 
-cJSON* delete_match(){
-    return NULL;
+cJSON* delete_match(delete_match_buffer *buffer, match *match_list){
+    pthread_mutex_lock(&mem.lock);
+    
+    match *current_match = &match_list[buffer->match_id];
+    // Cancella dalla lista delle partite del giocatore la match corrente da rimuovere
+    current_match->match_id = 0;
+    current_match->owner_id = 0;
+    current_match->guest_id = 0;
+    current_match->match_state = MATCH_STATE_CREATING;
+    int i,j;
+    for(i = 0; i < 3; i++)
+        for (j = 0; j < 3; j++)
+            current_match->grid[i][j] = 0;
+    
+    pthread_mutex_unlock(&mem.lock);
+    return get_match_list(match_list);
 }

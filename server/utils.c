@@ -138,7 +138,7 @@ cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buff
             content = handle_draw();
         break;
         case SIG_DELETE_MATCH:
-            content = delete_match();
+            cJSON_AddItemToObject(content, "match_list", delete_match(&buffer->delete_match, mem.match_list));
         break;
     }
 
