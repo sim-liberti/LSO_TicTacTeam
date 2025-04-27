@@ -46,6 +46,7 @@ cJSON* send_guest_request(int socket_fd, guest_request_buffer *buffer, match *ma
         cJSON_AddStringToObject(owner_payload, "info", "new match access request");
         cJSON_AddNumberToObject(owner_payload, "match_id", buffer->match_id);
         cJSON_AddNumberToObject(owner_payload, "guest_id", buffer->guest_id);
+        cJSON_AddStringToObject(owner_payload, "guest_username", buffer->guest_username);
         return owner_payload;
     } 
     
@@ -77,7 +78,13 @@ cJSON* delete_match(delete_match_buffer *buffer, match *match_list){
     for(i = 0; i < 3; i++)
         for (j = 0; j < 3; j++)
             current_match->grid[i][j] = 0;
-    
+
+    while (current_match->requests){
+        match_request *tmp = current_match->requests;
+        current_match->requests = current_match->requests->next;
+        free(tmp);
+    }
+
     pthread_mutex_unlock(&mem.lock);
     return get_match_list(match_list);
 }

@@ -28,14 +28,25 @@ typedef enum match_state_enum {
     MATCH_STATE_COMPLETED  = 3
 } match_state_enum;
 
+typedef struct match_request{
+    int match_id;
+    int guest_id;
+    char *guest_username;
+
+    struct match_request *next;
+} match_request;
+
 typedef struct match{
     int match_id;
     int owner_id;
+    char *owner_username;
     int guest_id;
+    char *guest_username;
     match_state_enum match_state;
     int grid[3][3];
     int turn;
 
+    match_request *requests;
     //gestione_pareggio pareggio;
 
     pthread_mutex_t lock;

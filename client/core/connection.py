@@ -5,7 +5,7 @@ from . import globals
 
 class ClientConnection:
     response_queue: Queue
-    notifications_queue: Queue
+    notifications_queue: list
     alert_queue: Queue
 
     client_id: int
@@ -25,13 +25,17 @@ class ClientConnection:
             self.client_socket.connect((self.host, self.port))
             self.is_connected = True
             self.response_queue = Queue()
-            self.notifications_queue = Queue()
+            self.notifications_queue = list()
             self.alert_queue = Queue()
             print(f"[INFO] Connected to {self.host} on port {self.port}")
 
             self.receive_thread = threading.Thread(target=self.receive_messages)
             self.receive_thread.daemon = True
             self.receive_thread.start()
+
+            self.notifications_thread = threading.Thread(target=self.wait_notifications)
+            self.notifications_thread.daemon = True
+            self.notifications_thread.start()
         except Exception as e:
             print(f"[ERROR] Could not connect to server: {e}")
             self.is_connected = False
@@ -54,6 +58,10 @@ class ClientConnection:
                 return self.response_queue.get()
             time.sleep(0.1)
         return None
+
+    def wait_notifications(self):
+        if globals.current_match == None:
+            pass
 
     def receive_messages(self):
         while self.is_connected:
@@ -80,13 +88,12 @@ class ClientConnection:
             
             if message_type == "first_connection":
                 self.client_id = message_content["socket_id"]
-                self.client_username = message_content["username"]
                 globals.match_list = message_content["match_list"]
                 if not self.first_msg_received.is_set():
                     self.first_msg_received.set()
                 
             if message_type == "notification":
-                self.notifications_queue.put(message_content)
+                self.notifications_queue.append(message_content)
 
             if message_type == "alert":
                 self.alert_queue.put(message_content)

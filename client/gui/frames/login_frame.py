@@ -24,7 +24,11 @@ class LoginFrame(ctk.CTkFrame):
         if username == "":
             popup = Popup(master=self, title="Errore", message="Inserisci il tuo Username")
             popup.show()
+            return
 
-        if controller.login(username):
+        logged_in, msg = controller.login(username)
+        if logged_in:
             utils.switch_frame(HomeFrame)
-            # print(username)
+        else:
+            popup = Popup(master=self, title="Errore", message=msg)
+            popup.show()

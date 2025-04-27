@@ -45,7 +45,7 @@ class FrameHeader(ctk.CTkFrame):
             #fg_color="lightblue"
         )
         #Il Nickname deve essere ottenuto dalla TextBox della prima GUI
-        self.header_label=ctk.CTkLabel(master=self, text=f"{utils.get_client_username()}", text_color=TEXT_COLOR, font=("Helvetica",30))
+        self.header_label=ctk.CTkLabel(master=self, text=f"Benvenuto {utils.get_client_username()}", text_color=TEXT_COLOR, font=("Helvetica",30))
         self.header_label.pack()
 
 class FrameMatches(ctk.CTkScrollableFrame):
@@ -85,10 +85,9 @@ class FrameMatches(ctk.CTkScrollableFrame):
             row += 1
 
     def refresh_matches(self):
-        match_list_refreshed = utils.get_match_list()
+        match_list_refreshed = controller.get_match_list()
         if match_list_refreshed:
             utils.switch_frame(HomeFrame)
-
 
 class FrameYourMatches(ctk.CTkScrollableFrame):
     def __init__(self, master, *args, **kwargs):
@@ -127,7 +126,6 @@ class FrameYourMatches(ctk.CTkScrollableFrame):
         if match_deleted:
             utils.switch_frame(HomeFrame)
 
- 
 class FrameNotifications(ctk.CTkScrollableFrame):
     def __init__(self, master, *args, **kwargs):
         super().__init__(
@@ -135,20 +133,34 @@ class FrameNotifications(ctk.CTkScrollableFrame):
             height=40, 
             #fg_color="lightgray"
         )
-        self.notifications_label=ctk.CTkLabel(master=self, text="Notifiche", text_color=TEXT_COLOR, font=FONT)
+
+        self.notifications_label = ctk.CTkLabel(master=self, text="Notifiche", text_color=TEXT_COLOR, font=FONT)
         self.notifications_label.grid(row=0, column=0, columnspan=3)
 
-        for i in range(5):
-            self.add_request(i+1)
+        self.refresh_requests()
 
-    def add_request(self, row, nickname="Nickname", match_id="ID"):
-        msg = f"Il giocatore {nickname} vuole unirsi alla partita {match_id}"
+    def add_request(self, row, username: str, match_id: int, guest_id: int):
+        msg = f"Il giocatore {username} vuole unirsi alla partita {match_id}"
         ctk.CTkLabel(master=self, text=msg, text_color=TEXT_COLOR, font=FONT).grid(row=row, column=0, padx=10, pady=10, sticky="nwes")
-        ctk.CTkButton(master=self, text="V", text_color="green", font=FONT, command=lambda: self.accept_match(match_id)).grid(row=row, column=1, padx=10, pady=10, sticky="nwes")
-        ctk.CTkButton(master=self, text="X", text_color="red", font=FONT, command=lambda: self.reject_match(match_id)).grid(row=row, column=2, padx=10, pady=10, sticky="nwes")
+        ctk.CTkButton(master=self, text="V", text_color="green", font=FONT, command=lambda: self.accept_match(match_id, guest_id)).grid(row=row, column=1, padx=10, pady=10, sticky="nwes")
+        ctk.CTkButton(master=self, text="X", text_color="red", font=FONT, command=lambda: self.reject_match(match_id, guest_id)).grid(row=row, column=2, padx=10, pady=10, sticky="nwes")
 
-    def accept_match(self, match_id):
+    def refresh_requests(self):
+        for widget in self.winfo_children():
+            if widget != self.notifications_label:
+                widget.destroy()
+        
+        ctk.CTkLabel(master=self, text="Notifiche", text_color=TEXT_COLOR, font=FONT).grid(row=0, column=0, columnspan=3)
+
+        row = 1
+        for n in utils.get_notifications_queue():
+            self.add_request(row, n["guest_username"], n["match_id"], n["guest_id"])
+            row += 1
+            
+        self.after(5000, self.refresh_requests)
+
+    def accept_match(self, match_id: int, guest_id: int):
         print(f"Accept match: {match_id}")
 
-    def reject_match(self, match_id):
+    def reject_match(self, match_id: int, guest_id: int):
         print(f"Reject match: {match_id}")

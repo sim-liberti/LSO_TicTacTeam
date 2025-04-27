@@ -1,9 +1,23 @@
+from core.connection import ClientConnection
 from . import globals
 from . import buffers
 import customtkinter as ctk
 
-def login(username: str) -> bool:
-    return True
+from typing import Tuple
+
+def login(username: str) -> Tuple[bool, str]:
+    try:
+        globals.client = ClientConnection(globals.HOST, globals.PORT)
+        globals.client.connect()
+        if not globals.client.is_connected:
+            raise Exception("Connection Refused")
+
+        globals.client.first_msg_received.wait()
+        globals.client.client_username = username
+    except Exception as e:
+        return (False, e)
+    
+    return (True, "")
 
 def get_match_list() -> bool:
     buffer = buffers.MatchListBuffer()

@@ -12,7 +12,7 @@ typedef enum signals_enum {
 } signals_enum;
 
 typedef struct create_new_match_buffer {
-    int owner_id;
+    int owner_id;   
 } create_new_match_buffer;
 
 typedef struct make_move_buffer {
@@ -27,6 +27,7 @@ typedef struct make_move_buffer {
 typedef struct guest_request_buffer {
     int match_id;
     int guest_id;
+    char *guest_username;
 } guest_request_buffer;
 
 typedef struct guest_response_buffer {
