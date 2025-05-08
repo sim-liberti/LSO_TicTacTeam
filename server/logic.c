@@ -8,8 +8,9 @@ cJSON* get_match_list(match *match_list){
             cJSON *p = cJSON_CreateObject();
             cJSON_AddNumberToObject(p, "match_id", match_list[i].match_id);
             cJSON_AddNumberToObject(p, "owner_id", match_list[i].owner_id);
+            cJSON_AddStringToObject(p, "owner_username", match_list[i].owner_username);
             cJSON_AddNumberToObject(p, "match_state", match_list[i].match_state);
-            cJSON_AddItemToArray(array, p); // aggiunge la match all'array
+            cJSON_AddItemToArray(array, p);
         }
     }
     return array;
@@ -22,6 +23,7 @@ cJSON* create_new_match(create_new_match_buffer *buffer, match *match_list){
         if (match_list[i].owner_id == 0){
             match_list[i].match_id = i;
             match_list[i].owner_id = buffer->owner_id;
+            match_list[i].owner_username = buffer->owner_username;
             match_list[i].match_state = MATCH_STATE_CREATING;
             pthread_mutex_unlock(&mem.lock);
             return get_match_list(match_list);
@@ -74,8 +76,23 @@ cJSON* send_guest_request(int socket_fd, guest_request_buffer *buffer, match *ma
     return guest_payload;
 }
 
-cJSON* send_guest_response(){
-    return NULL;
+cJSON* send_guest_response(guest_response_buffer *buffer, match *match_list){
+    match *current_match = &match_list[buffer->match_id];
+    cJSON* json = cJSON_CreateObject();
+    
+    if (buffer->owner_answ == 0) {
+        cJSON_AddStringToObject(json, "info", "request to join denied");
+        cJSON_AddNumberToObject(json, "match_id", buffer->match_id);
+        return json;
+    }
+    
+    cJSON_AddNumberToObject(json, "owner_id", current_match->owner_id);
+    cJSON_AddStringToObject(json, "owner_username", current_match->owner_username);
+    cJSON_AddNumberToObject(json, "guest_id", current_match->guest_id);
+    cJSON_AddStringToObject(json, "guest_username", current_match->guest_username);
+    cJSON_AddNumberToObject(json, "turn", current_match->turn);
+
+    return json;
 }
 
 cJSON* handle_draw(){
@@ -89,8 +106,11 @@ cJSON* delete_match(delete_match_buffer *buffer, match *match_list){
     // Cancella dalla lista delle partite del giocatore la match corrente da rimuovere
     current_match->match_id = 0;
     current_match->owner_id = 0;
+    current_match->owner_username = "";
     current_match->guest_id = 0;
+    current_match->guest_username = "";
     current_match->match_state = MATCH_STATE_CREATING;
+    current_match->turn = 0;
     int i,j;
     for(i = 0; i < 3; i++)
         for (j = 0; j < 3; j++)

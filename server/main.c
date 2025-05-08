@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <time.h>
 
 #include "handler.h"
 
@@ -11,6 +12,12 @@ int main() {
     socklen_t addrlen = sizeof(address);
     int opt = 1;
     
+    static int initialized = 0;
+    if (!initialized) {
+        srand(time(NULL));
+        initialized = 1;
+    }
+
     setvbuf(stdout, NULL, _IONBF, 0);
     signal(SIGINT, handle_sigint);
     // pthread_mutex_init(&mem.lock, NULL);

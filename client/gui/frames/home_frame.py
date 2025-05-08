@@ -1,6 +1,7 @@
 import customtkinter as ctk
 
 from core import controller
+from ..popups import Popup
 import utils
 
 FONT = ("Helvetica", 18)
@@ -68,20 +69,19 @@ class FrameMatches(ctk.CTkScrollableFrame):
     def add_game_row(self, row, owner, match_id, status, color):
         ctk.CTkLabel(master=self, text=owner, text_color=TEXT_COLOR, font=FONT).grid(row=row, column=0, pady=3, sticky="nwes")
         ctk.CTkLabel(master=self, text=match_id, text_color=TEXT_COLOR, font=FONT).grid(row=row, column=1, pady=3, sticky="nwes")
-        ctk.CTkLabel(master=self, text=status, width=10, text_color=color, font=FONT).grid(row=row, column=2, pady=3, sticky="nwes")
+        ctk.CTkLabel(master=self, text=status, width=10, text_color=color, font=('Helvetica', 14)).grid(row=row, column=2, pady=3, sticky="nwes")
         ctk.CTkButton(master=self, text="Entra", textvariable=match_id, command=lambda: self.send_match_request(match_id)).grid(row=row, column=3, pady=3, sticky="nwes")
 
     def send_match_request(self,match_id):
-        if controller.send_match_request(match_id, utils.get_client_id()):
-            self.mostra_popup()
-            
-    def mostra_popup(self):
-        pass
-        
+        if controller.send_match_request(match_id, utils.get_client_id(), utils.get_client_username()):
+            popup = Popup(self, "Info", "Richiesta inviata correttamente")
+            popup.show()
+
     def display_matches(self, match_list):
         row = 3
         for match in match_list:
-            self.add_game_row(row, match["owner_id"], match["match_id"], match["match_state"], "green")
+            state_text, state_color = utils.get_match_state_info(int(match["match_state"]))
+            self.add_game_row(row, match["owner_username"], match["match_id"], state_text, state_color)
             row += 1
 
     def refresh_matches(self):
@@ -133,7 +133,7 @@ class FrameNotifications(ctk.CTkScrollableFrame):
             height=40, 
             #fg_color="lightgray"
         )
-
+        self.notifications_count = 0
         self.notifications_label = ctk.CTkLabel(master=self, text="Notifiche", text_color=TEXT_COLOR, font=FONT)
         self.notifications_label.grid(row=0, column=0, columnspan=3)
 
@@ -146,16 +146,24 @@ class FrameNotifications(ctk.CTkScrollableFrame):
         ctk.CTkButton(master=self, text="X", text_color="red", font=FONT, command=lambda: self.reject_match(match_id, guest_id)).grid(row=row, column=2, padx=10, pady=10, sticky="nwes")
 
     def refresh_requests(self):
-        for widget in self.winfo_children():
-            if widget != self.notifications_label:
-                widget.destroy()
+        notifications_list = utils.get_notifications_list()
         
-        ctk.CTkLabel(master=self, text="Notifiche", text_color=TEXT_COLOR, font=FONT).grid(row=0, column=0, columnspan=3)
+        print(f"[DEBUG] Notifications: {notifications_list}")
+        print(f"[DEBUG] Notifications count: {len(notifications_list)}")
 
-        row = 1
-        for n in utils.get_notifications_queue():
-            self.add_request(row, n["guest_username"], n["match_id"], n["guest_id"])
-            row += 1
+        if len(notifications_list) != self.notifications_count:
+            for widget in self.winfo_children():
+                if widget != self.notifications_label:
+                    widget.destroy()
+            
+            ctk.CTkLabel(master=self, text="Notifiche", text_color=TEXT_COLOR, font=FONT).grid(row=0, column=0, columnspan=3)
+
+            row = 1
+            for n in notifications_list:
+                self.add_request(row, n["guest_username"], n["match_id"], n["guest_id"])
+                row += 1
+
+            self.notifications_count = len(notifications_list)
             
         self.after(5000, self.refresh_requests)
 

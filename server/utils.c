@@ -2,16 +2,16 @@
 #include "logic.h"
 
 bool check_win(int match[3][3], int x_coord, int y_coord) {
-    if (match[x_coord][0] == match[x_coord][1] == match[x_coord][2])
+    if ((match[x_coord][0] == match[x_coord][1]) && (match[x_coord][1] == match[x_coord][2]))
         return true;
 
-    if (match[0][y_coord] == match[1][y_coord] == match[2][y_coord])
+    if ((match[0][y_coord] == match[1][y_coord]) && (match[1][y_coord] == match[2][y_coord]))
         return true;
 
-    if ((x_coord == y_coord) && (match[0][0] == match[1][1] == match[2][2])) 
+    if ((x_coord == y_coord) && ((match[0][0] == match[1][1]) && (match[1][1] == match[2][2]))) 
         return true;
     
-    if ((x_coord == 2-y_coord) && (match[0][2] == match[1][1] == match[2][0]))
+    if ((x_coord == 2-y_coord) && ((match[0][2] == match[1][1]) && (match[1][1] == match[2][0])))
         return true;
 
     return false; 
@@ -26,6 +26,22 @@ bool check_draw(int match[3][3]) {
         }
     }
     return true;
+}
+
+void start_match(guest_response_buffer *buffer, match *match_list) {
+    if (buffer->owner_answ == 0) return;
+
+    match *current_match = &match_list[buffer->match_id];
+    current_match->guest_id = buffer->guest_id;
+    current_match->match_state = MATCH_STATE_ONGOING;
+    current_match->guest_username = buffer->guest_username;
+    current_match->turn = rand() % 2;
+
+    while (current_match->requests){
+        match_request *tmp = current_match->requests;
+        current_match->requests = current_match->requests->next;
+        free(tmp);
+    }
 }
 
 void update_match(make_move_buffer *buffer, match *match_list) {
@@ -85,6 +101,9 @@ void convert_json_to_buffer(char *json, generic_buffer *buffer){
             buffer->new_match.owner_id = cJSON_GetNumberValue(
                 cJSON_GetObjectItem(new_mach_json, "owner_id")
             );
+            buffer->new_match.owner_username = cJSON_GetStringValue(
+                cJSON_GetObjectItem(new_mach_json, "owner_username")
+            );
         break;
         case SIG_MAKE_MOVE:
             buffer->sig = SIG_MAKE_MOVE;
@@ -118,6 +137,9 @@ void convert_json_to_buffer(char *json, generic_buffer *buffer){
             buffer->guest_request.guest_id = cJSON_GetNumberValue(
                 cJSON_GetObjectItem(guest_request_json, "guest_id")
             );
+            buffer->guest_request.guest_username = cJSON_GetStringValue(
+                cJSON_GetObjectItem(guest_request_json, "guest_username")
+            );
         break;
         case SIG_GUEST_RESPONSE:
             buffer->sig = SIG_GUEST_RESPONSE;
@@ -132,6 +154,9 @@ void convert_json_to_buffer(char *json, generic_buffer *buffer){
             );
             buffer->guest_response.owner_answ = cJSON_GetNumberValue(
                 cJSON_GetObjectItem(guest_response_json, "owner_answ")
+            );
+            buffer->guest_response.guest_username = cJSON_GetStringValue(
+                cJSON_GetObjectItem(guest_response_json, "guest_username")
             );
         break;
         case SIG_HANDLE_DRAW:
@@ -175,6 +200,7 @@ cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buff
             cJSON_AddStringToObject(message, "type", "response");
         break;
     }
+    cJSON_AddNumberToObject(message, "sig", buffer->sig);
 
     cJSON *content = cJSON_CreateObject();
     switch(buffer->sig) {
@@ -191,7 +217,7 @@ cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buff
             content = send_guest_request(socket_fd, &buffer->guest_request, mem.match_list);
         break;
         case SIG_GUEST_RESPONSE:
-            content = send_guest_response();
+            cJSON_AddItemToObject(content, "match_data", send_guest_response(&buffer->guest_response, mem.match_list));
         break;
         case SIG_HANDLE_DRAW:
             content = handle_draw();

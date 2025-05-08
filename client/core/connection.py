@@ -5,7 +5,7 @@ from . import globals
 
 class ClientConnection:
     response_queue: Queue
-    notifications_queue: list
+    notifications_list: list
     alert_queue: Queue
 
     client_id: int
@@ -25,7 +25,7 @@ class ClientConnection:
             self.client_socket.connect((self.host, self.port))
             self.is_connected = True
             self.response_queue = Queue()
-            self.notifications_queue = list()
+            self.notifications_list = list()
             self.alert_queue = Queue()
             print(f"[INFO] Connected to {self.host} on port {self.port}")
 
@@ -93,7 +93,7 @@ class ClientConnection:
                     self.first_msg_received.set()
                 
             if message_type == "notification":
-                self.notifications_queue.append(message_content)
+                self.notifications_list.append(message_content)
 
             if message_type == "alert":
                 self.alert_queue.put(message_content)

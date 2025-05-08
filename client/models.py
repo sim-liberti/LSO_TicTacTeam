@@ -1,3 +1,20 @@
+from enum import Enum
+
+class MatchState(Enum):
+    MATCH_STATE_CREATING   = 0
+    MATCH_STATE_WAITING    = 1
+    MATCH_STATE_ONGOING    = 2
+    MATCH_STATE_DRAW       = 3
+    MATCH_STATE_COMPLETED  = 4
+
+MATCH_STATE_INFO: dict = {
+    MatchState.MATCH_STATE_CREATING: ("CREAZIONE", "green"),
+    MatchState.MATCH_STATE_WAITING: ("IN ATTESA", "green"),
+    MatchState.MATCH_STATE_ONGOING: ("IN CORSO", "yellow"),
+    MatchState.MATCH_STATE_DRAW: ("PAREGGIO", "red"),
+    MatchState.MATCH_STATE_COMPLETED: ("TERMINATA", "red"),
+}
+
 class Match:
     owner_id: int
     guest_id: int

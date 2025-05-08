@@ -25,15 +25,17 @@ class CreateNewMatchBuffer:
     sig: Signal
     owner_id: int
 
-    def __init__(self, owner_id: int):
+    def __init__(self, owner_id: int, owner_username: str):
         self.sig = Signal.SIG_CREATE_NEW_MATCH
         self.owner_id = owner_id
+        self.owner_username = owner_username
 
     def serialize(self):
         return json.dumps({
             'sig': self.sig.value,
             'new_match': {
-                'owner_id': self.owner_id
+                'owner_id': self.owner_id,
+                'owner_username': self.owner_username
             }
         }, default=str)
 
@@ -58,10 +60,11 @@ class GuestRequestBuffer():
     match_id: int
     guest_id: int
 
-    def __init__(self, match_id: int, guest_id: int):
+    def __init__(self, match_id: int, guest_id: int, guest_username: str):
         self.sig = Signal.SIG_GUEST_REQUEST
         self.match_id = match_id
         self.guest_id = guest_id
+        self.guest_username = guest_username
 
     def serialize(self):
         return json.dumps({
@@ -69,6 +72,7 @@ class GuestRequestBuffer():
             'guest_request': {
                 'match_id': self.match_id,
                 'guest_id': self.guest_id,
+                'guest_username': self.guest_username
             }
         }, default=str)
     

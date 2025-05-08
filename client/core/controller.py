@@ -30,7 +30,7 @@ def get_match_list() -> bool:
     return False
 
 def create_match() -> bool:
-    buffer = buffers.CreateNewMatchBuffer(globals.client.client_id)
+    buffer = buffers.CreateNewMatchBuffer(globals.client.client_id, globals.client.client_username)
     globals.client.send_message(buffer.serialize())
     response = globals.client.wait_response(timeout=150)
     if response:
@@ -49,21 +49,23 @@ def delete_match(match_id: int) -> bool:
 
     return False
 
-def send_match_request(match_id: int, guest_id: int) -> str:
-    buffer = buffers.GuestRequestBuffer(match_id, guest_id)
+def send_match_request(match_id: int, guest_id: int, guest_username: str) -> bool:
+    buffer = buffers.GuestRequestBuffer(match_id, guest_id, guest_username)
     globals.client.send_message(buffer.serialize())
     response = globals.client.wait_response(timeout=150)
     if response:
-        return globals.client.response_queue.get()
+        return True
 
-    return ""
+    return False
 
 def send_draw_response(answ: int) -> bool:
     buffer = buffers.HandleDrawBuffer(globals.current_match, globals.player_id, answ)
     globals.client.send_message(buffer.serialize())
     response = globals.client.wait_response(timeout=150)
     if response:
-        return globals.client.response_queue.get()
+        return True
+    
+    return False
     
 def send_move():
     # Se arriva un messaggio con le coordinate
