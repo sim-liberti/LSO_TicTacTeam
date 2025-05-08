@@ -25,7 +25,8 @@ typedef enum match_state_enum {
     MATCH_STATE_CREATING   = 0,
     MATCH_STATE_WAITING    = 1,
     MATCH_STATE_ONGOING    = 2,
-    MATCH_STATE_COMPLETED  = 3
+    MATCH_STATE_DRAW       = 3,
+    MATCH_STATE_COMPLETED  = 4
 } match_state_enum;
 
 typedef struct match_request{

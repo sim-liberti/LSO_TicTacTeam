@@ -18,7 +18,7 @@ typedef struct create_new_match_buffer {
 typedef struct make_move_buffer {
     int match_id;
     int player_id;
-    //simboli_partita_enum simbolo;
+    int symbol;
     int x_coord;
     int y_coord;
     int turn;

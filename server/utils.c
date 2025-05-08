@@ -1,6 +1,65 @@
 #include "utils.h"
 #include "logic.h"
 
+bool check_win(int match[3][3], int x_coord, int y_coord) {
+    if (match[x_coord][0] == match[x_coord][1] == match[x_coord][2])
+        return true;
+
+    if (match[0][y_coord] == match[1][y_coord] == match[2][y_coord])
+        return true;
+
+    if ((x_coord == y_coord) && (match[0][0] == match[1][1] == match[2][2])) 
+        return true;
+    
+    if ((x_coord == 2-y_coord) && (match[0][2] == match[1][1] == match[2][0]))
+        return true;
+
+    return false; 
+}
+
+bool check_draw(int match[3][3]) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (match[i][j] == 0) {
+                return false; // Ci sono ancora celle vuote, quindi non è un pareggio
+            }
+        }
+    }
+    return true;
+}
+
+void update_match(make_move_buffer *buffer, match *match_list) {
+    int match_id = buffer->match_id;
+    int player_id = buffer->player_id;
+    int x_coord = buffer->x_coord;
+    int y_coord = buffer->y_coord;
+    int symbol = buffer->symbol;
+
+    match *current_match = &match_list[match_id];
+
+    while ((player_id == current_match->guest_id && current_match->turn != 0) ||
+           (player_id == current_match->guest_id && current_match->turn != 1)) {
+        if (player_id == current_match->owner_id) {
+            pthread_cond_wait(&current_match->cond_turno_owner, &current_match->lock);
+        } else {
+            pthread_cond_wait(&current_match->cond_turno_guest, &current_match->lock);
+        }
+    }
+
+    current_match->grid[x_coord][y_coord] = symbol;
+    current_match->turn = (current_match->turn + 1) % 2;
+
+    if(check_win(current_match->grid, x_coord, y_coord))
+        current_match->match_state = MATCH_STATE_COMPLETED;
+    else if(check_draw(current_match->grid))
+        current_match->match_state = MATCH_STATE_DRAW;
+
+    if (player_id == current_match->owner_id)
+        pthread_cond_signal(&current_match->cond_turno_guest);
+    else if (player_id == current_match->guest_id)
+        pthread_cond_signal(&current_match->cond_turno_owner);
+}
+
 void convert_json_to_buffer(char *json, generic_buffer *buffer){
     cJSON *json_obj = cJSON_Parse(json);
     if (json_obj == NULL) {
@@ -38,9 +97,9 @@ void convert_json_to_buffer(char *json, generic_buffer *buffer){
             buffer->make_move.player_id = cJSON_GetNumberValue(
                 cJSON_GetObjectItem(make_move_json, "player_id")
             );
-            // buffer->make_move.simbolo = cJSON_GetNumberValue(
-            //     cJSON_GetObjectItem(make_move_json, "simbolo")
-            // );
+            buffer->make_move.symbol = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(make_move_json, "symbol")
+            );
             buffer->make_move.x_coord = cJSON_GetNumberValue(
                 cJSON_GetObjectItem(make_move_json, "x_coord")
             );   
@@ -126,7 +185,7 @@ cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buff
             cJSON_AddItemToObject(content, "match_list", create_new_match(&buffer->new_match, mem.match_list));
         break;
         case SIG_MAKE_MOVE:
-            content = make_move();
+            cJSON_AddItemToObject(content, "turn", make_move(socket_fd, &buffer->make_move, mem.match_list));
         break;
         case SIG_GUEST_REQUEST:
             content = send_guest_request(socket_fd, &buffer->guest_request, mem.match_list);

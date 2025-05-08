@@ -31,6 +31,21 @@ void* handle_client(void* arg) {
                 send_message(owner_socket, MESSAGE_NOTIFICATION, &buffer);
                 send_message(client_socket, MESSAGE_RESPONSE, &buffer);
             break;
+            case SIG_MAKE_MOVE:
+                int opponent_id;
+                match *current_match = &mem.match_list[buffer.make_move.match_id];
+                if (buffer.make_move.player_id == mem.match_list[buffer.make_move.match_id].owner_id)
+                    opponent_id = mem.match_list[buffer.make_move.match_id].guest_id;
+                else
+                    opponent_id = mem.match_list[buffer.make_move.match_id].owner_id;
+
+                pthread_mutex_lock(&current_match->lock);
+                update_match(mem.match_list, &buffer.make_move);
+                send_message(opponent_id, MESSAGE_NOTIFICATION, &buffer);
+                send_message(buffer.make_move.player_id, MESSAGE_RESPONSE, &buffer);
+                pthread_mutex_unlock(&current_match->lock);
+                free(current_match);
+            break;
             default:
                 send_message(client_socket, MESSAGE_RESPONSE, &buffer);
             break;

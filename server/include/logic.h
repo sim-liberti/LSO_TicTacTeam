@@ -7,8 +7,8 @@
 #include "buffer.h"
 
 cJSON* get_match_list(match *);
-cJSON* create_new_match(create_new_match_buffer*, match *);
-cJSON* make_move();
+cJSON* create_new_match(create_new_match_buffer *, match *);
+cJSON* make_move(int, make_move_buffer *, match *);
 cJSON* send_guest_request(int, guest_request_buffer *, match *);
 cJSON* send_guest_response();
 cJSON* handle_draw();

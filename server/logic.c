@@ -22,7 +22,7 @@ cJSON* create_new_match(create_new_match_buffer *buffer, match *match_list){
         if (match_list[i].owner_id == 0){
             match_list[i].match_id = i;
             match_list[i].owner_id = buffer->owner_id;
-            //match_list[i].stato_match = CREAZIONE;
+            match_list[i].match_state = MATCH_STATE_CREATING;
             pthread_mutex_unlock(&mem.lock);
             return get_match_list(match_list);
         }
@@ -33,8 +33,25 @@ cJSON* create_new_match(create_new_match_buffer *buffer, match *match_list){
     return json;
 }
 
-cJSON* make_move(){
-    return NULL;
+cJSON* make_move(int socket_fd, make_move_buffer *buffer, match *match_list) {
+    int match_id = buffer->match_id;
+    int player_id = buffer->player_id;
+    int x_coord = buffer->x_coord;
+    int y_coord = buffer->y_coord;
+    match *current_match = &match_list[match_id];
+        
+    char *match_outcome = "ongoing";
+    if (current_match->match_state == MATCH_STATE_DRAW)
+        match_outcome = "draw";
+    else if (current_match->match_state == MATCH_STATE_COMPLETED)
+        match_outcome = player_id == socket_fd ? "win" : "lose";
+
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, "match_outcome", match_outcome);
+    cJSON_AddNumberToObject(json, "x_coord", x_coord);
+    cJSON_AddNumberToObject(json, "y_coord", y_coord);
+
+    return json;
 }
 
 cJSON* send_guest_request(int socket_fd, guest_request_buffer *buffer, match *match_list){
@@ -88,3 +105,4 @@ cJSON* delete_match(delete_match_buffer *buffer, match *match_list){
     pthread_mutex_unlock(&mem.lock);
     return get_match_list(match_list);
 }
+

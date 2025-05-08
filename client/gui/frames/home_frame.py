@@ -11,7 +11,7 @@ class HomeFrame(ctk.CTkFrame):
         super().__init__(master)
 
         # Layout a griglia 3x1
-        self.grid_rowconfigure(1, weight=1)  # Zona centrale espandibile
+        self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
         # Header
