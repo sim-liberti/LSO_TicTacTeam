@@ -17,10 +17,16 @@ MATCH_STATE_INFO: dict = {
 
 class Match:
     owner_id: int
+    owner_username: str
     guest_id: int
+    guest_username: str
+    turn: int
     board: list
 
-    def __init__(self, owner_id, guest_id, board):
+    def __init__(self, owner_id, owner_username, guest_id, guest_username, turn):
         self.owner_id = owner_id
+        self.owner_username = owner_username
         self.guest_id = guest_id
+        self.guest_username = guest_username
+        self.turn = turn
         self.board = [["" for _ in range(3)] for _ in range(3)]

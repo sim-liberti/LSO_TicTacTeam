@@ -1,7 +1,9 @@
-import socket, json, threading, time, sys
+import socket, json, threading, time
 from queue import Queue
 
 from . import globals
+from .buffers import Signal
+import utils
 
 class ClientConnection:
     response_queue: Queue
@@ -63,6 +65,11 @@ class ClientConnection:
         if globals.current_match == None:
             pass
 
+    def handle_alert(self):
+        alert = self.alert_queue.get()
+        if alert["sig"] == Signal.SIG_GUEST_RESPONSE.value:
+            utils.start_match(alert["match_data"])
+
     def receive_messages(self):
         while self.is_connected:
             try:
@@ -97,6 +104,7 @@ class ClientConnection:
 
             if message_type == "alert":
                 self.alert_queue.put(message_content)
+                self.handle_alert()
 
             if message_type == "response":
                 self.response_queue.put(message_content)

@@ -2,6 +2,7 @@ import customtkinter as ctk
 
 from core import controller
 from ..popups import Popup
+from .match_frame import MatchFrame
 import utils
 
 FONT = ("Helvetica", 18)
@@ -142,14 +143,11 @@ class FrameNotifications(ctk.CTkScrollableFrame):
     def add_request(self, row, username: str, match_id: int, guest_id: int):
         msg = f"Il giocatore {username} vuole unirsi alla partita {match_id}"
         ctk.CTkLabel(master=self, text=msg, text_color=TEXT_COLOR, font=FONT).grid(row=row, column=0, padx=10, pady=10, sticky="nwes")
-        ctk.CTkButton(master=self, text="V", text_color="green", font=FONT, command=lambda: self.accept_match(match_id, guest_id)).grid(row=row, column=1, padx=10, pady=10, sticky="nwes")
-        ctk.CTkButton(master=self, text="X", text_color="red", font=FONT, command=lambda: self.reject_match(match_id, guest_id)).grid(row=row, column=2, padx=10, pady=10, sticky="nwes")
+        ctk.CTkButton(master=self, text="V", text_color="green", font=FONT, command=lambda: self.send_match_response(match_id, guest_id, username, 1)).grid(row=row, column=1, padx=10, pady=10, sticky="nwes")
+        ctk.CTkButton(master=self, text="X", text_color="red", font=FONT, command=lambda: self.send_match_response(match_id, guest_id, username, 0)).grid(row=row, column=2, padx=10, pady=10, sticky="nwes")
 
     def refresh_requests(self):
         notifications_list = utils.get_notifications_list()
-        
-        print(f"[DEBUG] Notifications: {notifications_list}")
-        print(f"[DEBUG] Notifications count: {len(notifications_list)}")
 
         if len(notifications_list) != self.notifications_count:
             for widget in self.winfo_children():
@@ -167,8 +165,11 @@ class FrameNotifications(ctk.CTkScrollableFrame):
             
         self.after(5000, self.refresh_requests)
 
-    def accept_match(self, match_id: int, guest_id: int):
-        print(f"Accept match: {match_id}")
-
-    def reject_match(self, match_id: int, guest_id: int):
-        print(f"Reject match: {match_id}")
+    def send_match_response(self, match_id: int, guest_id: int, guest_username: str, answer: int):
+        match_data = controller.send_match_response(match_id, guest_id, guest_username, answer)
+        if match_data == {} or "info" in match_data:
+            return
+        
+        utils.delete_notification(match_id, guest_id, guest_username, answer)
+        if answer == 1:
+            utils.start_match(match_data)

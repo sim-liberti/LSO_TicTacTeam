@@ -152,11 +152,11 @@ void convert_json_to_buffer(char *json, generic_buffer *buffer){
             buffer->guest_response.guest_id = cJSON_GetNumberValue(
                 cJSON_GetObjectItem(guest_response_json, "guest_id")
             );
-            buffer->guest_response.owner_answ = cJSON_GetNumberValue(
-                cJSON_GetObjectItem(guest_response_json, "owner_answ")
-            );
             buffer->guest_response.guest_username = cJSON_GetStringValue(
                 cJSON_GetObjectItem(guest_response_json, "guest_username")
+            );
+            buffer->guest_response.owner_answ = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(guest_response_json, "owner_answ")
             );
         break;
         case SIG_HANDLE_DRAW:
@@ -200,9 +200,9 @@ cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buff
             cJSON_AddStringToObject(message, "type", "response");
         break;
     }
-    cJSON_AddNumberToObject(message, "sig", buffer->sig);
-
+    
     cJSON *content = cJSON_CreateObject();
+    cJSON_AddNumberToObject(content, "sig", buffer->sig);
     switch(buffer->sig) {
         case SIG_GET_MATCH_LIST:
             cJSON_AddItemToObject(content, "match_list", get_match_list(mem.match_list));

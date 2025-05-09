@@ -62,7 +62,6 @@ cJSON* send_guest_request(int socket_fd, guest_request_buffer *buffer, match *ma
     if (socket_fd == owner_id) {
         // Messaggio per l'owner: hai ricevuto una nuova richiesta
         cJSON* owner_payload = cJSON_CreateObject();
-        cJSON_AddStringToObject(owner_payload, "info", "new match access request");
         cJSON_AddNumberToObject(owner_payload, "match_id", buffer->match_id);
         cJSON_AddNumberToObject(owner_payload, "guest_id", buffer->guest_id);
         cJSON_AddStringToObject(owner_payload, "guest_username", buffer->guest_username);

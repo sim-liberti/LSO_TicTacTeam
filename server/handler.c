@@ -32,7 +32,7 @@ void* handle_client(void* arg) {
                 send_message(client_socket, MESSAGE_RESPONSE, &buffer);
             break;
             case SIG_GUEST_RESPONSE:
-                int guest_socket = mem.match_list[buffer.guest_response.match_id].guest_id;
+                int guest_socket = buffer.guest_response.guest_id;
                 if (buffer.guest_response.owner_answ == 1)
                     start_match(&buffer.guest_response, mem.match_list);
                 send_message(guest_socket, MESSAGE_ALERT, &buffer);
