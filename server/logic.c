@@ -85,6 +85,7 @@ cJSON* send_guest_response(guest_response_buffer *buffer, match *match_list){
         return json;
     }
     
+    cJSON_AddNumberToObject(json, "match_id", current_match->match_id);
     cJSON_AddNumberToObject(json, "owner_id", current_match->owner_id);
     cJSON_AddStringToObject(json, "owner_username", current_match->owner_username);
     cJSON_AddNumberToObject(json, "guest_id", current_match->guest_id);
@@ -110,9 +111,8 @@ cJSON* delete_match(delete_match_buffer *buffer, match *match_list){
     current_match->guest_username = "";
     current_match->match_state = MATCH_STATE_CREATING;
     current_match->turn = 0;
-    int i,j;
-    for(i = 0; i < 3; i++)
-        for (j = 0; j < 3; j++)
+    for(int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
             current_match->grid[i][j] = 0;
 
     while (current_match->requests){

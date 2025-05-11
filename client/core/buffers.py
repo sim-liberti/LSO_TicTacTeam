@@ -102,7 +102,38 @@ class GuestResponseBuffer():
                 'owner_answ': self.owner_answ
             }
         }, default=str)
-    
+
+class MakeMoveBuffer():
+    sig: Signal
+    match_id :int
+    player_id :int
+    symbol :int
+    x_coord :int
+    y_coord :int
+    turn :int
+
+    def __init__(self, match_id: int, player_id: int, symbol: int, x_coord: int, y_coord: int, turn: int):
+        self.sig = Signal.SIG_MAKE_MOVE
+        self.match_id = match_id
+        self.player_id = player_id
+        self.symbol = symbol
+        self.x_coord = x_coord
+        self.y_coord = y_coord
+        self.turn = turn
+
+    def serialize(self):
+        return json.dumps({
+            'sig': self.sig.value,
+            'make_move': {
+                'match_id': self.match_id,
+                'player_id': self.player_id,
+                'symbol': self.symbol,
+                'x_coord': self.x_coord,
+                'y_coord': self.y_coord,
+                'turn': self.turn
+            }
+        }, default=str)
+
 class HandleDrawBuffer():
     sig: Signal
     match_id: int

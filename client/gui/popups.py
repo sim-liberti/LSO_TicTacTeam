@@ -37,6 +37,10 @@ class Popup:
             self.active_popup.destroy()
             self.active_popup = None
 
+class MatchEndedPopup(Popup):
+    def __init__(self, master, title, message):
+        super.__init__(master, title, message)
+
 class DrawPopup(Popup):
     def __init__(self, master, title, message):
         super.__init__(master, title, message)

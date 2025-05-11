@@ -1,20 +1,22 @@
 import customtkinter as ctk
 
+from core import controller
+from models import Match
 import utils
 
 class TrisGridFrame(ctk.CTkFrame):
     def __init__(self, master, match, client_id, **kwargs):
         super().__init__(master, **kwargs)
 
-        self.match = match
-        self.client_id = client_id
-        self.symbol = "O" if self.client_id == self.match.owner_id else "X"
-        self.is_my_turn = False
+        self.match :Match = match
+        self.client_id: int = client_id
+        self.symbol: str = "O" if self.client_id == self.match.owner_id else "X"
+        self.is_my_turn: bool = False
         if ((self.symbol == "O" and self.match.turn == 0) or
             (self.symbol == "X" and self.match.turn == 1)):
            self.is_my_turn = True
-        self.board = self.match.board
-        self.buttons = []
+        self.board: list = self.match.board
+        self.buttons: list = []
 
         for row in range(3):
             row_buttons = []
@@ -33,25 +35,32 @@ class TrisGridFrame(ctk.CTkFrame):
             self.buttons.append(row_buttons)
 
     def on_button_click(self, row: int, col: int):
-        self.is_my_turn = False
-        for row in range(3):
-            for col in range(3):
-                self.board[row][col].configure(state="disabled")
-
-        if self.board[row][col] == "":
-            self.buttons[row][col].configure(text=self.symbol)
-
-        # controller.make_move()
+        response = controller.make_move(self.match.match_id, self.client_id, 1 if self.symbol=="O" else 2, row, col, self.match.turn)
+        if response["match_outcome"] == "ongoing":
+            if self.board[row][col] == "":
+                self.buttons[row][col].configure(text=self.symbol)
+            for row in range(3):
+                for col in range(3):
+                    self.buttons[row][col].configure(state="disabled")
+            self.is_my_turn = False
+            self.match.turn = (self.match.turn + 1) % 2
+        else:
+            utils.set_turn(response)
 
     def refresh_grid(self, row: int, col: int):
         symbol = "O" if self.symbol == "X" else "X"
-        self.board[row][col].configure(text=symbol)
+        self.board[row][col] = symbol
+        self.buttons[row][col].configure(text=symbol)
 
         self.is_my_turn = True
+        self.match.turn = (self.match.turn + 1) % 2
         for row in range(3):
             for col in range(3):
                 if self.board[row][col] == "":
-                    self.board[row][col].configure(state="normal")
+                    self.buttons[row][col].configure(state="normal")
+
+    def handle_game_ended(self):
+        pass
 
 class MatchFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -80,3 +89,5 @@ if __name__ == "__main__":
     ctk.set_default_color_theme("dark-blue")
     app = TrisApp()
     app.mainloop()
+
+

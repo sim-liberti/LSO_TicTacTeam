@@ -48,9 +48,26 @@ void* handle_client(void* arg) {
 
                 pthread_mutex_lock(&current_match->lock);
                 update_match(&buffer.make_move, mem.match_list);
-                send_message(opponent_id, MESSAGE_NOTIFICATION, &buffer);
+                send_message(opponent_id, MESSAGE_ALERT, &buffer);
                 send_message(buffer.make_move.player_id, MESSAGE_RESPONSE, &buffer);
+                if (current_match->match_state == MATCH_STATE_COMPLETED)
+                    clean_match(buffer.make_move.player_id, current_match);
                 pthread_mutex_unlock(&current_match->lock);
+
+                // if (player_id == current_match->owner_id)
+                //     pthread_cond_signal(&current_match->cond_turno_guest);
+                // else if (player_id == current_match->guest_id)
+                //     pthread_cond_signal(&current_match->cond_turno_owner);
+                
+                // while ((player_id == current_match->guest_id && current_match->turn != 0) ||
+                //        (player_id == current_match->guest_id && current_match->turn != 1)) {
+                //     if (player_id == current_match->owner_id) {
+                //         pthread_cond_wait(&current_match->cond_turno_owner, &current_match->lock);
+                //     } else {
+                //         pthread_cond_wait(&current_match->cond_turno_guest, &current_match->lock);
+                //     }
+                // }
+
             break;
             default:
                 send_message(client_socket, MESSAGE_RESPONSE, &buffer);

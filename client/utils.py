@@ -1,8 +1,10 @@
 from typing import Tuple
 
 import core.globals as globals
+import core.controller as controller
 from models import MatchState, MATCH_STATE_INFO, Match
 from gui.frames.match_frame import MatchFrame
+from gui.popups import Popup
 
 def get_client_id() -> int:
     return globals.client.client_id
@@ -45,6 +47,7 @@ def delete_notification(match_id: int, guest_id: int, guest_username: str, answe
 
 def start_match(match_data: dict):
     current_match = Match(
+        match_data["match_id"],
         match_data["owner_id"],
         match_data["owner_username"],
         match_data["guest_id"],
@@ -55,4 +58,21 @@ def start_match(match_data: dict):
     print(f"[DEBUG] Current match set: {globals.current_match}")
     print("Switching frame...")
     switch_frame(MatchFrame)
+    
+def set_turn(turn_data: dict):
+
+    if turn_data["match_outcome"] == "ongoing":
+        globals.app.current_frame.grid_frame.refresh_grid(turn_data["x_coord"], turn_data["y_coord"])
+    elif turn_data["match_outcome"] == "draw":
+        pass
+    elif turn_data["match_outcome"] == "win":
+        popup = Popup(globals.app.current_frame, "info", "Hai vinto! >:)")
+        popup.show()
+        print("[DEBUG] Client won, switching frame...")
+        globals.app.load_home_page()
+    elif turn_data["match_outcome"] == "lose":
+        popup = Popup(globals.app.current_frame, "info", "Hai perso! <:(")
+        popup.show()
+        print("[DEBUG] Client lost, switching frame...")
+        globals.app.load_home_page()
     

@@ -2,7 +2,6 @@ import customtkinter as ctk
 
 from core import controller
 from ..popups import Popup
-from .match_frame import MatchFrame
 import utils
 
 FONT = ("Helvetica", 18)
@@ -38,6 +37,8 @@ class HomeFrame(ctk.CTkFrame):
         # Footer
         self.footer = FrameNotifications(master=self)
         self.footer.grid(row=2, column=0, sticky="nsew")
+
+
         
 class FrameHeader(ctk.CTkFrame):
     def __init__(self, master, *args, **kwargs):
@@ -71,7 +72,8 @@ class FrameMatches(ctk.CTkScrollableFrame):
         ctk.CTkLabel(master=self, text=owner, text_color=TEXT_COLOR, font=FONT).grid(row=row, column=0, pady=3, sticky="nwes")
         ctk.CTkLabel(master=self, text=match_id, text_color=TEXT_COLOR, font=FONT).grid(row=row, column=1, pady=3, sticky="nwes")
         ctk.CTkLabel(master=self, text=status, width=10, text_color=color, font=('Helvetica', 14)).grid(row=row, column=2, pady=3, sticky="nwes")
-        ctk.CTkButton(master=self, text="Entra", textvariable=match_id, command=lambda: self.send_match_request(match_id)).grid(row=row, column=3, pady=3, sticky="nwes")
+        if status == "CREAZIONE":
+            ctk.CTkButton(master=self, text="Entra", textvariable=match_id, command=lambda: self.send_match_request(match_id)).grid(row=row, column=3, pady=3, sticky="nwes")
 
     def send_match_request(self,match_id):
         if controller.send_match_request(match_id, utils.get_client_id(), utils.get_client_username()):

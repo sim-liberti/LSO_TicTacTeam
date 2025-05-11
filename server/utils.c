@@ -53,27 +53,27 @@ void update_match(make_move_buffer *buffer, match *match_list) {
 
     match *current_match = &match_list[match_id];
 
-    while ((player_id == current_match->guest_id && current_match->turn != 0) ||
-           (player_id == current_match->guest_id && current_match->turn != 1)) {
-        if (player_id == current_match->owner_id) {
-            pthread_cond_wait(&current_match->cond_turno_owner, &current_match->lock);
-        } else {
-            pthread_cond_wait(&current_match->cond_turno_guest, &current_match->lock);
-        }
-    }
-
     current_match->grid[x_coord][y_coord] = symbol;
     current_match->turn = (current_match->turn + 1) % 2;
-
+    
     if(check_win(current_match->grid, x_coord, y_coord))
         current_match->match_state = MATCH_STATE_COMPLETED;
     else if(check_draw(current_match->grid))
         current_match->match_state = MATCH_STATE_DRAW;
+}
 
-    if (player_id == current_match->owner_id)
-        pthread_cond_signal(&current_match->cond_turno_guest);
-    else if (player_id == current_match->guest_id)
-        pthread_cond_signal(&current_match->cond_turno_owner);
+void clean_match(int player_id, match *current_match){
+    if (current_match->owner_id != player_id){
+        current_match->owner_id = current_match->guest_id;
+        current_match->owner_username = current_match->guest_username;
+    }
+    current_match->guest_id = 0;
+    current_match->guest_username = "";
+    current_match->match_state = MATCH_STATE_CREATING;
+    current_match->turn = 0;
+    for(int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+            current_match->grid[i][j] = 0;
 }
 
 void convert_json_to_buffer(char *json, generic_buffer *buffer){

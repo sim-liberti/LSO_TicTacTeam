@@ -8,8 +8,15 @@ class App(ctk.CTk):
         ctk.set_default_color_theme("dark-blue")
         super().__init__()
         self.geometry("900x700")
+
         self.current_frame = None
         self.switch_frame(LoginFrame)
+
+    def load_home_page(self):
+        if self.current_frame:
+            self.current_frame.destroy()
+        self.current_frame = HomeFrame(self)
+        self.current_frame.pack(fill="both", expand=True)
 
     def switch_frame(self, frame):
         if self.current_frame:

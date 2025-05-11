@@ -53,10 +53,8 @@ def send_match_request(match_id: int, guest_id: int, guest_username: str) -> boo
     buffer = buffers.GuestRequestBuffer(match_id, guest_id, guest_username)
     globals.client.send_message(buffer.serialize())
     response = globals.client.wait_response(timeout=150)
-    if response:
-        return True
-
-    return False
+    
+    return True if response else False
 
 def send_match_response(match_id: int, guest_id: int, guest_username: str, answer: int) -> dict:
     buffer = buffers.GuestResponseBuffer(match_id, guest_id, guest_username, answer)
@@ -70,14 +68,12 @@ def send_draw_response(answ: int) -> bool:
     buffer = buffers.HandleDrawBuffer(globals.current_match, globals.player_id, answ)
     globals.client.send_message(buffer.serialize())
     response = globals.client.wait_response(timeout=150)
-    if response:
-        return True
     
-    return False
+    return True if response else False
     
-def send_move():
-    # Se arriva un messaggio con le coordinate
-    # chiamo refresh_grid in globals.app.current_frame.refresh_grid(x, y1)
-    pass
+def make_move(match_id: int, player_id: int, symbol: int, x_coord: int, y_coord: int, turn: int) -> bool:
+    buffer = buffers.MakeMoveBuffer(match_id, player_id, symbol, x_coord, y_coord, turn)
+    globals.client.send_message(buffer.serialize())
+    response = globals.client.wait_response(timeout=150)
 
-
+    return response["turn"]

@@ -69,6 +69,9 @@ class ClientConnection:
         alert = self.alert_queue.get()
         if alert["sig"] == Signal.SIG_GUEST_RESPONSE.value:
             utils.start_match(alert["match_data"])
+        elif alert["sig"] == Signal.SIG_MAKE_MOVE.value:
+            print(f"[DEBUG] Turn received: {alert["turn"]}")
+            utils.set_turn(alert["turn"])
 
     def receive_messages(self):
         while self.is_connected:
@@ -109,7 +112,7 @@ class ClientConnection:
             if message_type == "response":
                 self.response_queue.put(message_content)
             
-        except json.JSONDecodeError as e:
+        except Exception as e:
             print(f"[ERROR] Exception while decoding message: {e}")
 
     def disconnect(self):

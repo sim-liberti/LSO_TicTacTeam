@@ -9,13 +9,14 @@ class MatchState(Enum):
 
 MATCH_STATE_INFO: dict = {
     MatchState.MATCH_STATE_CREATING: ("CREAZIONE", "green"),
-    MatchState.MATCH_STATE_WAITING: ("IN ATTESA", "green"),
+    MatchState.MATCH_STATE_WAITING: ("IN ATTESA", "yellow"),
     MatchState.MATCH_STATE_ONGOING: ("IN CORSO", "yellow"),
     MatchState.MATCH_STATE_DRAW: ("PAREGGIO", "red"),
     MatchState.MATCH_STATE_COMPLETED: ("TERMINATA", "red"),
 }
 
 class Match:
+    match_id: int
     owner_id: int
     owner_username: str
     guest_id: int
@@ -23,7 +24,8 @@ class Match:
     turn: int
     board: list
 
-    def __init__(self, owner_id, owner_username, guest_id, guest_username, turn):
+    def __init__(self, match_id, owner_id, owner_username, guest_id, guest_username, turn):
+        self.match_id = match_id
         self.owner_id = owner_id
         self.owner_username = owner_username
         self.guest_id = guest_id
