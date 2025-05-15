@@ -15,8 +15,5 @@ int send_message(int, message_type_enum, generic_buffer *);
 
 bool check_win(int [3][3], int, int);
 bool check_draw(int [3][3]);
-void start_match(guest_response_buffer *buffer, match *match_list);
-void update_match(make_move_buffer *, match *);
-void clean_match(int, match *);
 
 #endif

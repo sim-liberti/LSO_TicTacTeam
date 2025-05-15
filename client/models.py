@@ -32,3 +32,6 @@ class Match:
         self.guest_username = guest_username
         self.turn = turn
         self.board = [["" for _ in range(3)] for _ in range(3)]
+
+    def __str__(self):
+        return f"match_id: {self.match_id}\nowner_id: {self.owner_id}\nowner_username: {self.owner_username}\nguest_id: {self.guest_id}\nguest_username: {self.guest_username}\nturn: {self.turn}\nboard: {self.board}"

@@ -28,54 +28,6 @@ bool check_draw(int match[3][3]) {
     return true;
 }
 
-void start_match(guest_response_buffer *buffer, match *match_list) {
-    if (buffer->owner_answ == 0) return;
-
-    match *current_match = &match_list[buffer->match_id];
-    current_match->guest_id = buffer->guest_id;
-    current_match->match_state = MATCH_STATE_ONGOING;
-    current_match->guest_username = buffer->guest_username;
-    current_match->turn = rand() % 2;
-
-    while (current_match->requests){
-        match_request *tmp = current_match->requests;
-        current_match->requests = current_match->requests->next;
-        free(tmp);
-    }
-}
-
-void update_match(make_move_buffer *buffer, match *match_list) {
-    int match_id = buffer->match_id;
-    int player_id = buffer->player_id;
-    int x_coord = buffer->x_coord;
-    int y_coord = buffer->y_coord;
-    int symbol = buffer->symbol;
-
-    match *current_match = &match_list[match_id];
-
-    current_match->grid[x_coord][y_coord] = symbol;
-    current_match->turn = (current_match->turn + 1) % 2;
-    
-    if(check_win(current_match->grid, x_coord, y_coord))
-        current_match->match_state = MATCH_STATE_COMPLETED;
-    else if(check_draw(current_match->grid))
-        current_match->match_state = MATCH_STATE_DRAW;
-}
-
-void clean_match(int player_id, match *current_match){
-    if (current_match->owner_id != player_id){
-        current_match->owner_id = current_match->guest_id;
-        current_match->owner_username = current_match->guest_username;
-    }
-    current_match->guest_id = 0;
-    current_match->guest_username = "";
-    current_match->match_state = MATCH_STATE_CREATING;
-    current_match->turn = 0;
-    for(int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
-            current_match->grid[i][j] = 0;
-}
-
 void convert_json_to_buffer(char *json, generic_buffer *buffer){
     cJSON *json_obj = cJSON_Parse(json);
     if (json_obj == NULL) {
@@ -161,6 +113,16 @@ void convert_json_to_buffer(char *json, generic_buffer *buffer){
         break;
         case SIG_HANDLE_DRAW:
             buffer->sig = SIG_HANDLE_DRAW;
+            cJSON *handle_draw_json = cJSON_GetObjectItem(json_obj, "handle_draw");
+            buffer->handle_draw.match_id = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(handle_draw_json, "match_id")
+            );
+            buffer->handle_draw.player_id = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(handle_draw_json, "player_id")
+            );
+            buffer->handle_draw.answ = cJSON_GetNumberValue(
+                cJSON_GetObjectItem(handle_draw_json, "answ")
+            );
         break;
         case SIG_DELETE_MATCH:
             buffer->sig = SIG_DELETE_MATCH;
@@ -220,10 +182,10 @@ cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buff
             cJSON_AddItemToObject(content, "match_data", send_guest_response(&buffer->guest_response, mem.match_list));
         break;
         case SIG_HANDLE_DRAW:
-            content = handle_draw();
+            cJSON_AddItemToObject(content, "draw_result", handle_draw(&buffer->handle_draw, mem.match_list));
         break;
         case SIG_DELETE_MATCH:
-            cJSON_AddItemToObject(content, "match_list", delete_match(&buffer->delete_match, mem.match_list));
+            cJSON_AddItemToObject(content, "match_list", delete_match(buffer->delete_match.match_id, mem.match_list));
         break;
     }
 

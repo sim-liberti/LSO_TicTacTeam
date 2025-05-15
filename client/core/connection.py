@@ -49,7 +49,7 @@ class ClientConnection:
         
         try:
             self.client_socket.sendall(message.encode('utf-8'))
-            
+            print("[DEBUG] Message to server sent")
         except Exception as e:
             print(f"[ERROR] Exception caught while sending message: {e}")
 
@@ -70,7 +70,6 @@ class ClientConnection:
         if alert["sig"] == Signal.SIG_GUEST_RESPONSE.value:
             utils.start_match(alert["match_data"])
         elif alert["sig"] == Signal.SIG_MAKE_MOVE.value:
-            print(f"[DEBUG] Turn received: {alert["turn"]}")
             utils.set_turn(alert["turn"])
 
     def receive_messages(self):
@@ -81,7 +80,9 @@ class ClientConnection:
                     self.disconnect()
                     print("[ERROR] Server disconnected")
                     break
+                print("[DEBUG] Server message received")
                 message = data.decode()
+                print("[DEBUG] Server message decoded")
                 self.handle_message(message)
             except Exception as e:
                 print(f"[ERROR] Error receiving message: {e}")
@@ -111,6 +112,7 @@ class ClientConnection:
 
             if message_type == "response":
                 self.response_queue.put(message_content)
+                print(f"[DEBUG] Response: {message_content}")
             
         except Exception as e:
             print(f"[ERROR] Exception while decoding message: {e}")

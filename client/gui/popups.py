@@ -37,19 +37,15 @@ class Popup:
             self.active_popup.destroy()
             self.active_popup = None
 
-class MatchEndedPopup(Popup):
-    def __init__(self, master, title, message):
-        super.__init__(master, title, message)
-
 class DrawPopup(Popup):
     def __init__(self, master, title, message):
-        super.__init__(master, title, message)
+        super().__init__(master, title, message)
 
     def show(self):
         if self.active_popup is None or not self.active_popup.winfo_exists():
             self.active_popup = ctk.CTkToplevel(self.master)
             self.active_popup.title(self.title)
-            self.active_popup.geometry("300x150")  # Dimensioni predefinite
+            self.active_popup.geometry("300x150")
             self.active_popup.resizable(False, False)
 
             label = ctk.CTkLabel(self.active_popup, text=self.message, font=FONT)
@@ -58,7 +54,7 @@ class DrawPopup(Popup):
             close_button_yes = ctk.CTkButton(self.active_popup, text="Si", command=lambda: self.send_draw(1))
             close_button_yes.grid(row=1, column=0, pady=10)
 
-            close_button_no = ctk.CTkButton(self.active_popup, text="No", command=lambda: self.send_draw(0))
+            close_button_no = ctk.CTkButton(self.active_popup, text="No", command=lambda: self.send_draw(2))
             close_button_no.grid(row=1, column=1, pady=10)
 
             self.active_popup.update()
@@ -66,6 +62,11 @@ class DrawPopup(Popup):
             self.master.wait_window(self.active_popup)
 
     def send_draw(self, choice: int):
-        controller.send_draw_response(choice)
+        import utils
+        response = controller.send_draw_response(choice)
+        if not response["restart"]:
+            utils.load_home_page()
+        else:
+            utils.start_match()
 
         self.close()

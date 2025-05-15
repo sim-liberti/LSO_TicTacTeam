@@ -69,6 +69,10 @@ void* handle_client(void* arg) {
                 // }
 
             break;
+            case SIG_HANDLE_DRAW:
+                wait_draw(&buffer.handle_draw, mem.match_list);
+                send_message(client_socket, MESSAGE_RESPONSE, &buffer);
+            break;
             default:
                 send_message(client_socket, MESSAGE_RESPONSE, &buffer);
             break;

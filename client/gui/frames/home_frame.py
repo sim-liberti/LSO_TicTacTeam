@@ -1,7 +1,7 @@
 import customtkinter as ctk
 
 from core import controller
-from ..popups import Popup
+from ..popups import Popup, DrawPopup
 import utils
 
 FONT = ("Helvetica", 18)
@@ -38,8 +38,6 @@ class HomeFrame(ctk.CTkFrame):
         self.footer = FrameNotifications(master=self)
         self.footer.grid(row=2, column=0, sticky="nsew")
 
-
-        
 class FrameHeader(ctk.CTkFrame):
     def __init__(self, master, *args, **kwargs):
         super().__init__(
@@ -50,6 +48,12 @@ class FrameHeader(ctk.CTkFrame):
         #Il Nickname deve essere ottenuto dalla TextBox della prima GUI
         self.header_label=ctk.CTkLabel(master=self, text=f"Benvenuto {utils.get_client_username()}", text_color=TEXT_COLOR, font=("Helvetica",30))
         self.header_label.pack()
+
+        ctk.CTkButton(master=self, text="Apri popup di prova", command=self.apri_popup).pack()
+    
+    def apri_popup(self):
+        popup = DrawPopup(self, "debug", "Prova invio messaggio")
+        popup.show()
 
 class FrameMatches(ctk.CTkScrollableFrame):
     def __init__(self, master, *args, **kwargs):

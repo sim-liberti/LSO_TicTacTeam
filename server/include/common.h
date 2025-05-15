@@ -37,6 +37,12 @@ typedef struct match_request{
     struct match_request *next;
 } match_request;
 
+typedef struct manage_draw{
+    int owner_answ;
+    int guest_answ;
+    int draw_handled;
+} manage_draw;
+
 typedef struct match{
     int match_id;
     int owner_id;
@@ -48,7 +54,7 @@ typedef struct match{
     int turn;
 
     match_request *requests;
-    //gestione_pareggio pareggio;
+    manage_draw draw;
 
     pthread_mutex_t lock;
     pthread_cond_t cond;

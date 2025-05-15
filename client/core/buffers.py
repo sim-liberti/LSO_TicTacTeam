@@ -138,13 +138,13 @@ class HandleDrawBuffer():
     sig: Signal
     match_id: int
     player_id: int
-    asnw: int
+    answ: int
 
-    def __init__(self, match_id: int, player_id: int, asnw: int):
-        self.sig = Signal.SIG_GUEST_RESPONSE
+    def __init__(self, match_id: int, player_id: int, answ: int):
+        self.sig = Signal.SIG_HANDLE_DRAW
         self.match_id = match_id
         self.player_id = player_id
-        self.asnw = asnw
+        self.answ = answ
 
     def serialize(self):
         return json.dumps({
@@ -152,6 +152,6 @@ class HandleDrawBuffer():
             'handle_draw': {
                 'match_id': self.match_id,
                 'player_id': self.player_id,
-                'asnw': self.asnw
+                'answ': self.answ
             }
         }, default=str)
