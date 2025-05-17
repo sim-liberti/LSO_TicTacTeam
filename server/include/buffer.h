@@ -8,7 +8,8 @@ typedef enum signals_enum {
     SIG_GUEST_REQUEST     = 3,  // Notifica al proprietario che un guest vuole entrare
     SIG_GUEST_RESPONSE    = 4,  // Risposta del proprietario alla richiesta guest
     SIG_HANDLE_DRAW       = 5,  // Gestione della richiesta di pareggio
-    SIG_DELETE_MATCH      = 6   // Cancellazione della partita
+    SIG_DELETE_MATCH      = 6,  // Cancellazione della partita
+    SIG_DISCONNECTION_MSG = 7   // Invio messaggio di disconnessione
 } signals_enum;
 
 typedef struct create_new_match_buffer {

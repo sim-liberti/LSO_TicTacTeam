@@ -12,6 +12,7 @@ void convert_json_to_buffer(char *, generic_buffer *);
 cJSON* build_first_connection_message(int, match *);
 cJSON* build_message(int, message_type_enum, generic_buffer *);
 int send_message(int, message_type_enum, generic_buffer *);
+int send_disconnection_message(int);
 
 bool check_win(int [3][3], int, int);
 bool check_draw(int [3][3]);

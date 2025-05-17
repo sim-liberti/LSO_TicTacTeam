@@ -5,6 +5,8 @@ from models import Match
 import utils
 
 class TrisGridFrame(ctk.CTkFrame):
+    page_title = "Partita"
+
     def __init__(self, master, match, client_id, **kwargs):
         super().__init__(master, **kwargs)
 

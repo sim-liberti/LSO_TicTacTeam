@@ -202,3 +202,21 @@ int send_message(int socket_fd, message_type_enum message_type, generic_buffer *
     cJSON_Delete(message);
     return sent;
 }
+
+int send_disconnection_message(int socket_fd) {
+    cJSON *message = cJSON_CreateObject();
+    cJSON_AddStringToObject(message, "type", "alert");
+
+    cJSON *content = cJSON_CreateObject();
+    cJSON_AddNumberToObject(content, "sig", SIG_DISCONNECTION_MSG);
+    cJSON_AddStringToObject(content, "info", "client disconnected");
+    
+    cJSON_AddItemToObject(message, "content", content);
+
+    char *message_str = cJSON_PrintUnformatted(message);
+    int sent = send(socket_fd, message_str, strlen(message_str), 0);
+    
+    free(message_str);
+    cJSON_Delete(message);
+    return sent;
+}

@@ -8,6 +8,8 @@ FONT = ("Helvetica", 18)
 TEXT_COLOR = "white"
 
 class HomeFrame(ctk.CTkFrame):
+    page_title = "Home"
+    
     def __init__(self, master):
         super().__init__(master)
 

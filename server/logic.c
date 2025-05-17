@@ -222,3 +222,29 @@ void wait_draw(handle_draw_buffer *buffer, match *match_list){
     
     pthread_mutex_unlock(&current_match->lock);
 }
+
+int remove_client_games(int player_id, match * match_list){
+    int retval = 0;
+
+    for (int i = 0; i < MAX_GAMES_NUM; i++) {
+        if ((match_list[i].owner_id == player_id) && (match_list[i].guest_id==0))
+            delete_match(i, match_list);
+        else if ((match_list[i].owner_id == player_id) && (match_list[i].guest_id!=0)){
+            //notifico il guest della disconnessione
+            match *current_match = &match_list[i];
+            pthread_mutex_lock(&current_match->lock);
+            clean_match(match_list[i].guest_id, match_list);
+            pthread_mutex_unlock(&current_match->lock);
+            retval = current_match->owner_id;
+        }
+        else if ((match_list[i].guest_id == player_id)){
+            //notifico l'owner della disconnessione
+            match *current_match = &match_list[i];
+            pthread_mutex_lock(&current_match->lock);
+            clean_match(match_list[i].owner_id, match_list);
+            pthread_mutex_unlock(&current_match->lock);
+            retval = current_match->owner_id;
+        }
+    }
+    return retval;
+}

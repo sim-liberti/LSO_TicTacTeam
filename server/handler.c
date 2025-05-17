@@ -79,6 +79,15 @@ void* handle_client(void* arg) {
         }
     }
 
+    handle_client_disconnection(client_socket);
+    
     close(client_socket);
     return NULL;
+}
+
+
+void handle_client_disconnection(int client_socket){
+    int alert_socket = remove_client_games(client_socket, mem.match_list);
+    if (alert_socket!=0)
+        send_disconnection_message(alert_socket);
 }
