@@ -64,6 +64,7 @@ Assicurati di avere [Python ≥ 3.10](https://www.python.org/downloads/) e [pip]
 Crea un ambiente virtuale (opzionale ma consigliato)
 ```bash
 pip install virtualenv
+virtualenv .venv
 ```
 Attiva l'ambiente
 - Windows
