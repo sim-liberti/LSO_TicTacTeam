@@ -2,7 +2,7 @@ from gui.app import App
 from core.connection import ClientConnection
 from models import Match
 
-HOST = '192.168.10.3'
+HOST = 'localhost'
 PORT = 8080
 
 app: App = None

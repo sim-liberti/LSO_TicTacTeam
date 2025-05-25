@@ -9,6 +9,7 @@ class Signal(Enum):
     SIG_GUEST_RESPONSE    = 4  # Risposta del proprietario alla richiesta guest
     SIG_HANDLE_DRAW       = 5  # Gestione della richiesta di pareggio
     SIG_DELETE_MATCH      = 6  # Cancellazione della partita
+    SIG_DISCONNECTION_MSG = 7  # Invio messaggio di disconnessione
 
 class MatchListBuffer:
     sig: Signal

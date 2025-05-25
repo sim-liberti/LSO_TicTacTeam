@@ -1,7 +1,6 @@
 import customtkinter as ctk
 
 from core import controller
-from .home_frame import HomeFrame
 from ..popups import Popup
 import utils
 
@@ -30,7 +29,7 @@ class LoginFrame(ctk.CTkFrame):
 
         logged_in, msg = controller.login(username)
         if logged_in:
-            utils.switch_frame(HomeFrame)
+            utils.switch_frame("Home")
         else:
             popup = Popup(master=self, title="Errore", message=msg)
             popup.show()

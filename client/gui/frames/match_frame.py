@@ -40,6 +40,7 @@ class TrisGridFrame(ctk.CTkFrame):
         response = controller.make_move(self.match.match_id, self.client_id, 1 if self.symbol=="O" else 2, row, col, self.match.turn)
         if response["match_outcome"] == "ongoing":
             if self.board[row][col] == "":
+                self.match.board[row][col]=self.symbol
                 self.buttons[row][col].configure(text=self.symbol)
             for row in range(3):
                 for col in range(3):
@@ -47,6 +48,10 @@ class TrisGridFrame(ctk.CTkFrame):
             self.is_my_turn = False
             self.match.turn = (self.match.turn + 1) % 2
         else:
+            if self.symbol=="O":
+                self.symbol="X"
+            else:
+                self.symbol="O"
             utils.set_turn(response)
 
     def refresh_grid(self, row: int, col: int):
@@ -61,8 +66,6 @@ class TrisGridFrame(ctk.CTkFrame):
                 if self.board[row][col] == "":
                     self.buttons[row][col].configure(state="normal")
 
-    def handle_game_ended(self):
-        pass
 
 class MatchFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -71,8 +74,6 @@ class MatchFrame(ctk.CTkFrame):
         self.match = utils.get_current_match()
         self.client_id = utils.get_client_id()
         self.title_label = ctk.CTkLabel(self, text=f"{self.match.owner_username} Vs {self.match.guest_username}", font=("Arial", 24))
-        ctk.CTkLabel(self, text=f"Giocatore: {utils.get_client_username()} ({utils.get_client_id()})").pack(pady=10)
-        ctk.CTkLabel(self, text=f"Turno iniziale: {self.match.turn}").pack(pady=10)
         self.title_label.pack(pady=10)
 
         self.grid_frame = TrisGridFrame(self, self.match, self.client_id)
@@ -95,7 +96,7 @@ class MatchFrame(ctk.CTkFrame):
         import utils
         response = controller.send_draw_response(choice)
         if not response["restart"]:
-            utils.load_home_page()
+            utils.switch_frame("Home")
         else:
             utils.start_match()
 

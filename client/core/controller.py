@@ -42,7 +42,7 @@ def delete_match(match_id: int) -> bool:
     buffer = buffers.DeleteMatchBuffer(match_id)
     globals.client.send_message(buffer.serialize())
     response = globals.client.wait_response(timeout=150)
-    if response:
+    if "info" not in response:
         globals.match_list = response["match_list"]
         return True
 
@@ -53,7 +53,7 @@ def send_match_request(match_id: int, guest_id: int, guest_username: str) -> boo
     globals.client.send_message(buffer.serialize())
     response = globals.client.wait_response(timeout=150)
     
-    return True if response else False
+    return True if "match_id" in response else False
 
 def send_match_response(match_id: int, guest_id: int, guest_username: str, answer: int) -> dict:
     buffer = buffers.GuestResponseBuffer(match_id, guest_id, guest_username, answer)

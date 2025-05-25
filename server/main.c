@@ -1,6 +1,6 @@
-#include <fcntl.h>
+//#include <fcntl.h>
+#include <winsock2.h>
 #include <time.h>
-
 #include "handler.h"
 
 SharedMemory mem;
@@ -34,8 +34,16 @@ int main() {
 
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     // Rende la "accept" non bloccante - Usato per gestire correttamente il SIGINT
-    fcntl(server_fd, F_SETFL, O_NONBLOCK);
-    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    //fcntl(server_fd, F_SETFL, O_NONBLOCK);
+    //setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    // Rendere non bloccante
+    u_long mode = 0;
+    ioctlsocket(server_fd, FIONBIO, &mode);
+
+    // Riutilizzo dell'indirizzo
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt));
+
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);

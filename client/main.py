@@ -1,10 +1,8 @@
 import customtkinter as ctk
 
 import core.globals as globals
-from core.connection import ClientConnection
 
 from gui.app import App
-# from core.handler import handle_message
 
 def main():
     ctk.set_appearance_mode("dark")

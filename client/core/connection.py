@@ -29,7 +29,6 @@ class ClientConnection:
             self.response_queue = Queue()
             self.notifications_list = list()
             self.alert_queue = Queue()
-            print(f"[INFO] Connected to {self.host} on port {self.port}")
 
             self.receive_thread = threading.Thread(target=self.receive_messages)
             self.receive_thread.daemon = True
@@ -49,7 +48,6 @@ class ClientConnection:
         
         try:
             self.client_socket.sendall(message.encode('utf-8'))
-            print("[DEBUG] Message to server sent")
         except Exception as e:
             print(f"[ERROR] Exception caught while sending message: {e}")
 
@@ -71,6 +69,8 @@ class ClientConnection:
             utils.start_match(alert["match_data"])
         elif alert["sig"] == Signal.SIG_MAKE_MOVE.value:
             utils.set_turn(alert["turn"])
+        elif alert["sig"] == Signal.SIG_DISCONNECTION_MSG.value:
+            utils.force_win()
 
     def receive_messages(self):
         while self.is_connected:
@@ -80,9 +80,7 @@ class ClientConnection:
                     self.disconnect()
                     print("[ERROR] Server disconnected")
                     break
-                print("[DEBUG] Server message received")
                 message = data.decode()
-                print("[DEBUG] Server message decoded")
                 self.handle_message(message)
             except Exception as e:
                 print(f"[ERROR] Error receiving message: {e}")
@@ -104,7 +102,8 @@ class ClientConnection:
                     self.first_msg_received.set()
                 
             if message_type == "notification":
-                self.notifications_list.append(message_content)
+                if message_content not in self.notifications_list:
+                    self.notifications_list.append(message_content)
 
             if message_type == "alert":
                 self.alert_queue.put(message_content)
@@ -112,7 +111,6 @@ class ClientConnection:
 
             if message_type == "response":
                 self.response_queue.put(message_content)
-                print(f"[DEBUG] Response: {message_content}")
             
         except Exception as e:
             print(f"[ERROR] Exception while decoding message: {e}")
@@ -121,4 +119,3 @@ class ClientConnection:
         if self.client_socket:
             self.client_socket.close()
             self.is_connected = False
-            print("[INFO] Connection closed.")

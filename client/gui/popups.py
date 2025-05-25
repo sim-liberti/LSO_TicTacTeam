@@ -16,7 +16,7 @@ class Popup:
         if self.active_popup is None or not self.active_popup.winfo_exists():
             self.active_popup = ctk.CTkToplevel(self.master)
             self.active_popup.title(self.title)
-            self.active_popup.geometry("300x150")  # Dimensioni predefinite
+            self.active_popup.geometry("350x150")
             self.active_popup.resizable(False, False)
 
             label = ctk.CTkLabel(self.active_popup, text=self.message, font=FONT)
@@ -25,12 +25,11 @@ class Popup:
             close_button = ctk.CTkButton(self.active_popup, text="Chiudi", command=self.close)
             close_button.pack(pady=10)
 
-            # Imposta il popup come modale (disabilita l'interazione con la finestra principale)
             self.active_popup.update()
             self.active_popup.grab_set()
             self.master.wait_window(self.active_popup)
         else:
-            self.active_popup.focus() # Porta in primo piano se già esiste
+            self.active_popup.focus()
 
     def close(self):
         if self.active_popup:
@@ -65,7 +64,7 @@ class DrawPopup(Popup):
         import utils
         response = controller.send_draw_response(choice)
         if not response["restart"]:
-            utils.load_home_page()
+            utils.switch_frame("Home")
         else:
             utils.start_match()
 
