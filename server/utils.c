@@ -130,6 +130,8 @@ void convert_json_to_buffer(char *json, generic_buffer *buffer){
                 cJSON_GetObjectItem(delete_match_json, "match_id")
             );
         break;
+        default:
+        break;
     }
 }
 
@@ -159,6 +161,8 @@ cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buff
         break;
         case MESSAGE_RESPONSE:
             cJSON_AddStringToObject(message, "type", "response");
+        break;
+        default:
         break;
     }
     
@@ -190,6 +194,8 @@ cJSON* build_message(int socket_fd, message_type_enum message_type, generic_buff
             else{
                 cJSON_AddItemToObject(content, "match_list", delete_match(buffer->delete_match.match_id, mem.match_list));
             }
+        break;
+        default:
         break;
     }
 

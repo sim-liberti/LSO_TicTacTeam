@@ -4,8 +4,10 @@ from . import buffers
 
 from typing import Tuple
 
-def login(username: str) -> Tuple[bool, str]:
+def login(username: str, ip: str, port: str) -> Tuple[bool, str]:
     try:
+        globals.HOST = ip
+        globals.PORT = int(port)
         globals.client = ClientConnection(globals.HOST, globals.PORT)
         globals.client.connect()
         if not globals.client.is_connected:

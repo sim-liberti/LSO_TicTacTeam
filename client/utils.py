@@ -11,6 +11,29 @@ def get_client_id() -> int:
 def get_client_username() -> str:
     return globals.client.client_username
 
+def get_client_ip() -> str:
+    import socket
+    return socket.gethostbyname(socket.gethostname())
+
+def is_ip_valid(addr: str) -> bool:
+    import socket
+
+    if not ":" in addr:
+        return False
+    ip, port = addr.split(":")[0], addr.split(":")[1]
+    if not port.isnumeric():
+        return False
+    if ip == "localhost":
+        return True
+    
+    try:
+        socket.inet_aton(ip)
+        return True
+    except socket.error:
+        return False
+
+    return False
+
 def get_match_list() -> list:
     return globals.match_list
 

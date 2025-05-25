@@ -11,6 +11,9 @@ class HomeFrame(ctk.CTkFrame):
     page_title = "Home"
     def __init__(self, master):
         super().__init__(master)
+
+        controller.get_match_list()
+        
         # Layout a griglia 3x1
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -37,6 +40,7 @@ class HomeFrame(ctk.CTkFrame):
         # Footer
         self.footer = FrameNotifications(master=self)
         self.footer.grid(row=2, column=0, sticky="nsew")
+
 
 class FrameHeader(ctk.CTkFrame):
     def __init__(self, master, *args, **kwargs):
