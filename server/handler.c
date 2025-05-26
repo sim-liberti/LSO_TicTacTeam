@@ -38,7 +38,6 @@ void* handle_client(void* arg) {
             break;
             case SIG_GUEST_RESPONSE:
                 int guest_socket = buffer.guest_response.guest_id;
-                
                 int guest_state=send(guest_socket,"0",1,0);
                 if (guest_state==-1){ 
                     buffer.guest_response.owner_answ=3;
@@ -47,6 +46,7 @@ void* handle_client(void* arg) {
                     buffer.guest_response.owner_answ=4;
                     send_message(client_socket, MESSAGE_RESPONSE, &buffer);
                 }else{
+                    start_match(&buffer.guest_response, mem.match_list);
                     send_message(guest_socket, MESSAGE_ALERT, &buffer);
                     send_message(client_socket, MESSAGE_RESPONSE, &buffer);
                 }   

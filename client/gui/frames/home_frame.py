@@ -11,8 +11,6 @@ class HomeFrame(ctk.CTkFrame):
     page_title = "Home"
     def __init__(self, master):
         super().__init__(master)
-
-        controller.get_match_list()
         
         # Layout a griglia 3x1
         self.grid_rowconfigure(1, weight=1)

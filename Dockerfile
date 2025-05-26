@@ -2,6 +2,7 @@ FROM gcc:latest AS builder
 
 WORKDIR /app
 COPY server /app/server
+RUN mv /app/server/Makefile.docker /app/server/Makefile
 WORKDIR /app/server
 
 RUN make

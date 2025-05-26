@@ -104,7 +104,6 @@ cJSON* send_guest_response(guest_response_buffer *buffer, match *match_list){
 
         return json;
     }
-    start_match(buffer, match_list);
     match *current_match = &match_list[buffer->match_id];
     cJSON_AddNumberToObject(json, "match_id", current_match->match_id);
     cJSON_AddNumberToObject(json, "owner_id", current_match->owner_id);
@@ -210,6 +209,7 @@ void wait_draw(handle_draw_buffer *buffer, match *match_list){
         int guest_answ = current_match->draw.guest_answ;
         
         if ((owner_answ == guest_answ) && (guest_answ == 1)){
+            current_match->match_state = MATCH_STATE_ONGOING;
             for(int i = 0; i < 3; i++)
                 for (int j = 0; j < 3; j++)
                     current_match->grid[i][j] = 0;

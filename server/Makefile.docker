@@ -22,7 +22,7 @@ build:
 	mkdir -p $(FOLDERS)
 
 $(TARGET): $(OBJS)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	$(CC) -static $(OBJS) -o $@ $(LDFLAGS)
 
 build/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
