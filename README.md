@@ -32,12 +32,12 @@ cd LSO_TicTacTeam
 ### 🐳 Server – via Docker/Podman
 #### Docker
 ```bash
-docker build -r lso-tictacteam .
+docker build -t lso-tictacteam .
 docker run -p 8080:8080 lso-tictacteam:latest
 ```
 #### Podman
 ```bash
-podman build -r lso-tictacteam .
+podman build -t lso-tictacteam .
 podman run -p 8080:8080 lso-tictacteam:latest
 ```
 
