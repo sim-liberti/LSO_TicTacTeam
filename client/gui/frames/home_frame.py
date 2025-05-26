@@ -175,11 +175,16 @@ class FrameNotifications(ctk.CTkScrollableFrame):
     def send_match_response(self, match_id: int, guest_id: int, guest_username: str, answer: int):
         match_data = controller.send_match_response(match_id, guest_id, guest_username, answer)
         utils.delete_notification(match_id, guest_id, guest_username, answer)
-        if match_data == {} or "info" in match_data:
+        if match_data == {} or "info" in match_data or answer==0:
             self.refresh_requests()
             return
         if "info2" in match_data:
             popup = Popup(self, "info", "Giocatore disconnesso")
+            popup.show()
+            self.refresh_requests()
+            return
+        if "info3" in match_data:
+            popup = Popup(self, "info", "Giocatore in partita")
             popup.show()
             self.refresh_requests()
             return

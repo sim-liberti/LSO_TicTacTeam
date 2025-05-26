@@ -82,7 +82,6 @@ cJSON* send_guest_request(int socket_fd, guest_request_buffer *buffer, match *ma
 }
 
 cJSON* send_guest_response(guest_response_buffer *buffer, match *match_list){
-    match *current_match = &match_list[buffer->match_id];
     cJSON* json = cJSON_CreateObject();
     
     if (buffer->owner_answ == 0) {
@@ -98,7 +97,15 @@ cJSON* send_guest_response(guest_response_buffer *buffer, match *match_list){
 
         return json;
     }
-    
+
+    if (buffer->owner_answ == 4) {
+        cJSON_AddStringToObject(json, "info3", "client in game");
+        cJSON_AddNumberToObject(json, "match_id", buffer->match_id);
+
+        return json;
+    }
+    start_match(buffer, match_list);
+    match *current_match = &match_list[buffer->match_id];
     cJSON_AddNumberToObject(json, "match_id", current_match->match_id);
     cJSON_AddNumberToObject(json, "owner_id", current_match->owner_id);
     cJSON_AddStringToObject(json, "owner_username", current_match->owner_username);
@@ -248,4 +255,16 @@ int remove_client_games(int player_id, match * match_list){
     }
 
     return opponent_socket;
+}
+
+bool check_in_game(int player, match * match_list){
+    pthread_mutex_lock(&mem.lock);
+    for (int i = 0; i < MAX_GAMES_NUM; i++) {
+        if((match_list[i].guest_id==player) || ((match_list[i].owner_id==player) && (match_list[i].match_state!=MATCH_STATE_CREATING))){
+            pthread_mutex_unlock(&mem.lock);
+            return true;
+        }
+    }
+    pthread_mutex_unlock(&mem.lock);
+    return false;
 }

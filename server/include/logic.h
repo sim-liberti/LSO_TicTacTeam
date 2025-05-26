@@ -19,5 +19,6 @@ void update_match(make_move_buffer *, match *);
 void clean_match(int, match *);
 void wait_draw(handle_draw_buffer *, match *);
 int remove_client_games(int, match *);
+bool check_in_game(int, match *);
 
 #endif // TRIS_LOGIC_H
