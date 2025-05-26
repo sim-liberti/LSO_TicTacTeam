@@ -84,7 +84,8 @@ pip install -r Requirements.txt
 
 Avvia il client
 ```bash
-cd client && python main.py
+cd client
+python main.py
 ```
 
 ## 🌐 Configurazione dell'host del server
