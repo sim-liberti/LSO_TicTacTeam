@@ -90,7 +90,7 @@ python main.py
 
 ## 🌐 Configurazione dell'host del server
 
-Il client necessita dell'indirizzo IP o hostname del server per connettersi. Il comportamento varia in base a dove è in esecuzione il server:
+Il client necessita dell'indirizzo IP del server per connettersi.
 
 - 🖥️ **Server Docker sulla stessa macchina del client**  
   Inserisci l’indirizzo IP locale della macchina (es. `192.168.1.121`) nell’interfaccia del client (già presente di default).
@@ -98,4 +98,6 @@ Il client necessita dell'indirizzo IP o hostname del server per connettersi. Il 
 - ⚙️ **Server compilato manualmente tramite Makefile sulla stessa macchina del client**  
   Puoi utilizzare `localhost:8080` o `127.0.0.1:8080`.
 
-> 📌 **Nota:** Assicurati che il firewall o il provider cloud consenta il traffico in ingresso sulla porta `8080`, usata dal server.
+## 📌 Note
+Se stai usando Windows, potresti dover disattivare l'antivirus o autorizzare manualmente il file `.exe` per avviarlo correttamente. \
+Per saperne di più sul funzionamento del programma, puoi consultare la [documentazione](https://github.com/sim-liberti/LSO_TicTacTeam/blob/master/Docs.pdf).
