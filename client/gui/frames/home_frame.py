@@ -186,5 +186,10 @@ class FrameNotifications(ctk.CTkScrollableFrame):
             popup.show()
             self.refresh_requests()
             return
+        if "info4" in match_data:
+            popup = Popup(self, "info", "Match inesistente")
+            popup.show()
+            self.refresh_requests()
+            return
         if answer == 1:
             utils.start_match(match_data)

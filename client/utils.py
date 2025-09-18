@@ -73,7 +73,7 @@ def delete_match_notifications(match_id: int):
     ))
 
 def start_match(match_data: dict = {}):
-    print(f"[DEBUG] Match data: {match_data}")
+    #print(f"[DEBUG] Match data: {match_data}")
     if match_data != {}:
         current_match = Match(
             match_data["match_id"],
@@ -86,7 +86,7 @@ def start_match(match_data: dict = {}):
         globals.current_match = current_match
     else:
         globals.current_match.board = [["" for _ in range(3)] for _ in range(3)]
-    print(f"[DEBUG] Current match: {globals.current_match}")
+    #print(f"[DEBUG] Current match: {globals.current_match}")
     switch_frame("Match")
     
 def set_turn(turn_data: dict):
@@ -108,7 +108,7 @@ def set_turn(turn_data: dict):
 
 
 def force_win():
-    print("[DEBUG] Forcing win...")
+    #print("[DEBUG] Forcing win...")
     popup = Popup(globals.app, "info", "L'avversario si è disconnesso, hai vinto!")
     popup.show()
     switch_frame("Home")

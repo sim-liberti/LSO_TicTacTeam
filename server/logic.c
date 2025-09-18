@@ -104,6 +104,13 @@ cJSON* send_guest_response(guest_response_buffer *buffer, match *match_list){
 
         return json;
     }
+
+    if (buffer->owner_answ == 5) {
+        cJSON_AddStringToObject(json, "info4", "match doesn't exist ");
+
+        return json;
+    }
+
     match *current_match = &match_list[buffer->match_id];
     cJSON_AddNumberToObject(json, "match_id", current_match->match_id);
     cJSON_AddNumberToObject(json, "owner_id", current_match->owner_id);
@@ -155,6 +162,8 @@ void start_match(guest_response_buffer *buffer, match *match_list) {
     if (buffer->owner_answ == 0) return;
 
     match *current_match = &match_list[buffer->match_id];
+    if (current_match->owner_id == 0)
+        return;
     current_match->guest_id = buffer->guest_id;
     current_match->match_state = MATCH_STATE_ONGOING;
     current_match->guest_username = buffer->guest_username;
